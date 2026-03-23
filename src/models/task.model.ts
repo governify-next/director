@@ -9,17 +9,24 @@ export interface ITask extends Document {
     scriptId: Types.ObjectId;
     inputArgs: Record<string, unknown>;
     type: TaskType;
-    startDate?: Date;
-    endDate?: Date;
+    startDate: Date;
+    endDate: Date;
+    interval?: number;
 }
 
 const taskSchema = new Schema<ITask>(
     {
         scriptId: { type: Schema.Types.ObjectId, ref: 'Script', required: true },
         inputArgs: { type: Schema.Types.Mixed, default: {} },
-        type: { type: String, enum: TaskType, required: true },
-        startDate: { type: Date },
-        endDate: { type: Date },
+        type: { type: String, enum: Object.values(TaskType), required: true },
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        interval: {
+            type: Number,
+            required: function () {
+                return this.type === TaskType.RECURRING;
+            },
+        }, // required if type is RECURRING
     },
     { timestamps: true },
 );
