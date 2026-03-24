@@ -35,6 +35,8 @@
     },
     "homepage": "https://github.com/governify-next/base#readme",
     "dependencies": {
+        "@agendajs/mongo-backend": "^4.0.0",
+        "agenda": "^6.2.3",
         "dotenv": "^17.2.3",
         "express": "^5.2.1",
         "express-validator": "^7.3.1",
