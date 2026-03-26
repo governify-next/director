@@ -10,7 +10,7 @@ export interface ITask extends Document {
     inputArgs: Record<string, unknown>;
     type: TaskType;
     startDate: Date;
-    endDate: Date;
+    endDate?: Date;
     interval?: number;
 }
 
@@ -20,7 +20,12 @@ const taskSchema = new Schema<ITask>(
         inputArgs: { type: Schema.Types.Mixed, default: {} },
         type: { type: String, enum: Object.values(TaskType), required: true },
         startDate: { type: Date, required: true },
-        endDate: { type: Date, required: true },
+        endDate: {
+            type: Date,
+            required: function () {
+                return this.type === TaskType.RECURRING;
+            },
+        },
         interval: {
             type: Number,
             required: function () {
