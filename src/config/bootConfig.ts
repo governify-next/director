@@ -11,4 +11,5 @@ export const bootEnv = {
     PORT: process.env.PORT || '3000',
     MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/mern_example',
     REDIS_URI: process.env.REDIS_URI || 'redis://localhost:6379',
+    WORKER_CONCURRENCY: parseInt(process.env.WORKER_CONCURRENCY || '1'),
 };
