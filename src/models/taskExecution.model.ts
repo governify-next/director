@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export enum TaskExecutionStatus {
-    SCHEDULED = 'SCHEDULED',
     RUNNING = 'RUNNING',
     SUCCEEDED = 'SUCCEEDED',
     FAILED = 'FAILED',
@@ -19,7 +18,7 @@ export interface ITaskExecution extends Document {
 
 const taskExecutionSchema = new Schema<ITaskExecution>(
     {
-        taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
+        taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
         startDate: { type: Date, required: true },
         finishDate: { type: Date },
         status: { type: String, enum: Object.values(TaskExecutionStatus), required: true },
@@ -29,8 +28,6 @@ const taskExecutionSchema = new Schema<ITaskExecution>(
     },
     { timestamps: true },
 );
-
-taskExecutionSchema.index({ status: 1, scheduledDate: 1 });
 
 const TaskExecution = mongoose.model<ITaskExecution>('TaskExecution', taskExecutionSchema);
 
