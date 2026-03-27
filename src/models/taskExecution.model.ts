@@ -9,7 +9,7 @@ export enum TaskExecutionStatus {
 
 export interface ITaskExecution extends Document {
     taskId: Types.ObjectId;
-    scheduledDate: Date;
+    startDate: Date;
     finishDate?: Date;
     status: TaskExecutionStatus;
     duration?: number;
@@ -20,7 +20,7 @@ export interface ITaskExecution extends Document {
 const taskExecutionSchema = new Schema<ITaskExecution>(
     {
         taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
-        scheduledDate: { type: Date, required: true },
+        startDate: { type: Date, required: true },
         finishDate: { type: Date },
         status: { type: String, enum: Object.values(TaskExecutionStatus), required: true },
         duration: { type: Number },
