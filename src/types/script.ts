@@ -10,5 +10,5 @@ export type ScriptHandler = (
 ) => Promise<unknown> | unknown;
 
 export interface ScriptModule {
-    default?: ScriptHandler;
+    default: ScriptHandler;
 }
