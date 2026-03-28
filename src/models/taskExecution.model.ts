@@ -11,7 +11,6 @@ export interface ITaskExecution extends Document {
     startDate: Date;
     finishDate?: Date;
     status: TaskExecutionStatus;
-    duration?: number;
     result?: unknown;
     error?: unknown;
 }
@@ -22,7 +21,6 @@ const taskExecutionSchema = new Schema<ITaskExecution>(
         startDate: { type: Date, required: true },
         finishDate: { type: Date },
         status: { type: String, enum: Object.values(TaskExecutionStatus), required: true },
-        duration: { type: Number },
         result: { type: Schema.Types.Mixed },
         error: { type: Schema.Types.Mixed },
     },
