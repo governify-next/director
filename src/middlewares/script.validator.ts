@@ -2,7 +2,7 @@ import { body, validationResult } from 'express-validator';
 import { type Request, type Response, type NextFunction } from 'express';
 import { ValidationError } from '../utils/customErrors.js';
 
-const commonScriptValidations = [
+export const validateScript = [
     body('name')
         .exists({ checkNull: true })
         .withMessage('Name is required')
@@ -29,21 +29,6 @@ const commonScriptValidations = [
             }
             return true;
         }),
-];
-
-export const validateCreateScript = [
-    ...commonScriptValidations,
-    (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return next(new ValidationError('Validation failed', errors.array()));
-        }
-        next();
-    },
-];
-
-export const validateUpdateScript = [
-    ...commonScriptValidations,
     (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
