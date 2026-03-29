@@ -27,10 +27,14 @@ export const validateTask = [
         .optional()
         .isISO8601()
         .withMessage('endDate must be a valid ISO8601 date')
-        .isAfter('startDate')
-        .withMessage('endDate must be after startDate')
         .isAfter()
-        .withMessage('endDate must be in the future'),
+        .withMessage('endDate must be in the future')
+        .custom((value: string, { req }) => {
+            if (new Date(value) <= new Date(req.body.startDate)) {
+                throw new Error('endDate must be after startDate');
+            }
+            return true;
+        }),
     body('interval')
         .if(body('type').equals(TaskType.RECURRING))
         .exists({ checkNull: true })
