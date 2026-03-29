@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import Script, { IScript } from '../models/script.model.js';
 
 import { DuplicateKeyError } from '../utils/customErrors.js';
@@ -29,11 +28,11 @@ export const getScripts = async () => {
     return await Script.find();
 };
 
-export const getScriptById = async (id: Types.ObjectId) => {
+export const getScriptById = async (id: string) => {
     return await Script.findById(id);
 };
 
-export const updateScript = async (id: Types.ObjectId, data: Partial<IScript>) => {
+export const updateScript = async (id: string, data: Partial<IScript>) => {
     try {
         return await Script.findByIdAndUpdate(id, data, { new: true, runValidators: true });
     } catch (err) {
@@ -53,6 +52,6 @@ export const updateScript = async (id: Types.ObjectId, data: Partial<IScript>) =
     }
 };
 
-export const deleteScript = async (id: Types.ObjectId) => {
+export const deleteScript = async (id: string) => {
     return await Script.findByIdAndDelete(id);
 };
