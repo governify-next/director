@@ -31,7 +31,10 @@ export const validateTask = [
         .optional()
         .isISO8601()
         .withMessage('endDate must be a valid ISO8601 date')
-        .isAfter('startDate'),
+        .isAfter('startDate')
+        .withMessage('endDate must be after startDate')
+        .isAfter(new Date().toISOString())
+        .withMessage('endDate must be in the future'),
     body('interval')
         .optional()
         .isInt({ min: 1 })
