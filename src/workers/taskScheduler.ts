@@ -62,6 +62,22 @@ export async function removeOneTimeTask(taskId: string) {
     }
 }
 
+export async function scheduleTask(task: ITask) {
+    if (task.type === TaskType.RECURRING) {
+        await scheduleRecurringTask(task);
+    } else if (task.type === TaskType.ONE_TIME) {
+        await scheduleOneTimeTask(task);
+    }
+}
+
+export async function removeTask(task: ITask) {
+    if (task.type === TaskType.RECURRING) {
+        await removeRecurringTask(task._id.toString());
+    } else if (task.type === TaskType.ONE_TIME) {
+        await removeOneTimeTask(task._id.toString());
+    }
+}
+
 export async function loadRecurringTasks() {
     const now = new Date();
 
