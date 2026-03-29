@@ -11,12 +11,8 @@ export const validateTask = [
         .withMessage('scriptId must be a valid Mongo id'),
     body('inputArgs')
         .optional()
-        .custom((value: unknown) => {
-            if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-                throw new Error('inputArgs must be an object');
-            }
-            return true;
-        }),
+        .isObject({ strict: true })
+        .withMessage('inputArgs must be an object'),
     body('type')
         .exists({ checkNull: true })
         .withMessage('type is required')
@@ -33,19 +29,19 @@ export const validateTask = [
         .withMessage('endDate must be a valid ISO8601 date')
         .isAfter('startDate')
         .withMessage('endDate must be after startDate')
-        .isAfter(new Date().toISOString())
+        .isAfter()
         .withMessage('endDate must be in the future'),
     body('interval')
-        .optional()
+        .if(body('type').equals(TaskType.RECURRING))
+        .exists({ checkNull: true })
+        .withMessage('interval is required for recurring tasks')
         .isInt({ min: 1 })
-        .withMessage('interval must be an integer greater than 0')
-        .custom((value: number, { req }) => {
-            const taskType = req.body.type;
-            if (taskType === TaskType.RECURRING && (value === undefined || value === null)) {
-                throw new Error('interval is required for recurring tasks');
-            }
-            return true;
-        }),
+        .withMessage('interval must be an integer greater than 0'),
+    body('interval')
+        .if(body('type').not().equals(TaskType.RECURRING))
+        .not()
+        .exists({ checkNull: true })
+        .withMessage('interval is only allowed for recurring tasks'),
     (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
