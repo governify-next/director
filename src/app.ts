@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
-import { userRoutes } from './routes/user.routes.js';
+import { scriptRoutes } from './routes/script.routes.js';
+import { taskRoutes } from './routes/task.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import swaggerUi from 'swagger-ui-express';
@@ -18,7 +19,8 @@ const swaggerDocument = YAML.load(swaggerPath);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(healthRoutes);
-app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/scripts', scriptRoutes);
+app.use('/api/v1/tasks', taskRoutes);
 app.use(errorHandler);
 
 export default app;
