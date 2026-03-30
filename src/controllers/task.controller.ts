@@ -51,6 +51,26 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+export const enableTask = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const task = await taskService.enableTask(req.params.id);
+        if (!task) throw new NotFoundError('Task not found');
+        return sendSuccess(res, { data: task, message: 'Task enabled' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const disableTask = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const task = await taskService.disableTask(req.params.id);
+        if (!task) throw new NotFoundError('Task not found');
+        return sendSuccess(res, { data: task, message: 'Task disabled' });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const getTaskExecutions = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const executions = await taskService.getTaskExecutions(req.params.id);

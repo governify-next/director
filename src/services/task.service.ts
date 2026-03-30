@@ -37,6 +37,28 @@ export const deleteTask = async (id: string) => {
     return deletedTask;
 };
 
+export const enableTask = async (id: string) => {
+    const task = await taskRepository.getTaskById(id);
+    if (!task) return null;
+
+    const enabledTask = await taskRepository.updateTask(id, { enabled: true });
+    if (!enabledTask) return null;
+
+    await taskScheduler.scheduleTask(enabledTask);
+    return enabledTask;
+};
+
+export const disableTask = async (id: string) => {
+    const task = await taskRepository.getTaskById(id);
+    if (!task) return null;
+
+    const disabledTask = await taskRepository.updateTask(id, { enabled: false });
+    if (!disabledTask) return null;
+
+    await taskScheduler.removeTask(disabledTask);
+    return disabledTask;
+};
+
 export const getTaskExecutions = async (id: string) => {
     return await taskRepository.getTaskExecutions(id);
 };
