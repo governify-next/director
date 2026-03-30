@@ -1,8 +1,14 @@
 import * as taskRepository from '../repositories/task.repository.js';
+import * as scriptRepository from '../repositories/script.repository.js';
 import * as taskScheduler from '../workers/taskScheduler.js';
 import { ITask } from '../models/task.model.js';
 
 export const createTask = async (data: Partial<ITask>) => {
+    const script = scriptRepository.getScriptByName(data.script!);
+    if (!script) {
+        throw new Error('Script not found');
+    }
+
     const task = await taskRepository.createTask(data);
 
     await taskScheduler.scheduleTask(task);
@@ -20,6 +26,13 @@ export const getTaskById = async (id: string) => {
 export const updateTask = async (id: string, data: Partial<ITask>) => {
     const currentTask = await taskRepository.getTaskById(id);
     if (!currentTask) return null;
+
+    if (data.script && data.script !== currentTask.script) {
+        const script = scriptRepository.getScriptByName(data.script);
+        if (!script) {
+            throw new Error('Script not found');
+        }
+    }
 
     const updatedTask = await taskRepository.updateTask(id, data);
     if (!updatedTask) return null;
