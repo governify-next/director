@@ -12,6 +12,7 @@ export interface ITaskExecution extends Document {
     finishDate?: Date;
     status: TaskExecutionStatus;
     result?: unknown;
+    log?: string[];
     error?: unknown;
 }
 
@@ -22,6 +23,7 @@ const taskExecutionSchema = new Schema<ITaskExecution>(
         finishDate: { type: Date },
         status: { type: String, enum: Object.values(TaskExecutionStatus), required: true },
         result: { type: Schema.Types.Mixed },
+        log: [{ type: String }],
         error: { type: Schema.Types.Mixed },
     },
     { timestamps: true },
