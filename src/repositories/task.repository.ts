@@ -23,5 +23,5 @@ export const deleteTask = async (id: string) => {
 };
 
 export const getTaskExecutions = async (id: string) => {
-    return await TaskExecution.find({ taskId: id });
+    return await TaskExecution.find({ taskId: id }).sort({ startDate: -1 });
 };
