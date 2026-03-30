@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export enum TaskType {
     ONE_TIME = 'ONE_TIME',
@@ -7,7 +7,7 @@ export enum TaskType {
 }
 
 export interface ITask extends Document {
-    scriptId: Types.ObjectId;
+    script: string;
     inputArgs: Record<string, unknown>;
     type: TaskType;
     enabled: boolean;
@@ -19,7 +19,7 @@ export interface ITask extends Document {
 
 const taskSchema = new Schema<ITask>(
     {
-        scriptId: { type: Schema.Types.ObjectId, ref: 'Script', required: true },
+        script: { type: String, required: true },
         inputArgs: { type: Schema.Types.Mixed, default: {} },
         type: { type: String, enum: Object.values(TaskType), required: true },
         enabled: { type: Boolean, default: true, required: true },
