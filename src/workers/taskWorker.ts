@@ -5,12 +5,15 @@ import TaskExecution, { TaskExecutionStatus } from '../models/taskExecution.mode
 import { loadScriptHandler } from '../services/script.service.js';
 import { bootEnv } from '../config/bootConfig.js';
 import { QUEUE_NAME } from './taskQueue.js';
-import { TaskExecutionContext } from '../types/script.js';
+import { TaskExecutionContext, TaskExecutionJobData } from '../types/script.js';
+import { getLogger } from '../utils/logger.js';
 
 export async function startTaskWorker() {
-    const taskWorker = new Worker<TaskExecutionContext>(
+    const taskWorker = new Worker<TaskExecutionJobData>(
         QUEUE_NAME,
         async (job) => {
+            const scriptLogs: string[] = [];
+
             const execution = await TaskExecution.create({
                 taskId: job.data.taskId,
                 startDate: new Date(),
@@ -31,16 +34,23 @@ export async function startTaskWorker() {
                     throw new Error(`Script not found for task: ${job.data.taskId}`);
                 }
 
+                const scriptLogger = getLogger().setTag(`task:${job.data.taskId}:${script.name}`);
+                scriptLogger.setCapture((line) => scriptLogs.push(line));
+
                 const scriptFunction = await loadScriptHandler(script.moduleRef);
 
-                const result = await scriptFunction(task.inputArgs, {
+                const scriptContext: TaskExecutionContext = {
                     taskId: task._id,
-                });
+                    logger: scriptLogger,
+                };
+
+                const result = await scriptFunction(task.inputArgs, scriptContext);
 
                 await TaskExecution.findByIdAndUpdate(execution._id, {
                     status: TaskExecutionStatus.SUCCEEDED,
                     finishDate: new Date(),
                     result: result,
+                    log: scriptLogs,
                 });
 
                 return result;
@@ -49,6 +59,7 @@ export async function startTaskWorker() {
                     status: TaskExecutionStatus.FAILED,
                     finishDate: new Date(),
                     error: error,
+                    log: scriptLogs,
                 });
 
                 // TODO: analizar comportamiento al lanzar error, manejo de reintentos...
