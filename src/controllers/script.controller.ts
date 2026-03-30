@@ -5,7 +5,7 @@ import { NotFoundError } from '../utils/customErrors.js';
 
 export const getScripts = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const scripts = await scriptService.getScripts();
+        const scripts = scriptService.getScripts();
         return sendSuccess(res, { data: scripts });
     } catch (err) {
         next(err);
@@ -14,7 +14,7 @@ export const getScripts = async (req: Request, res: Response, next: NextFunction
 
 export const getScriptByName = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const script = await scriptService.getScriptByName(req.params.name);
+        const script = scriptService.getScriptByName(req.params.name);
         if (!script) throw new NotFoundError('Script not found');
         return sendSuccess(res, { data: script });
     } catch (err) {
