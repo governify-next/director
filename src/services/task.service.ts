@@ -40,6 +40,15 @@ export const updateTask = async (id: string, data: Partial<ITask>) => {
         }
     }
 
+    if (data.inputArgs && data.inputArgs !== currentTask.inputArgs) {
+        const script = scriptRepository.getScriptByName(data.script ?? currentTask.script);
+
+        const parseResult = script.inputSchema.safeParse(data.inputArgs);
+        if (!parseResult.success) {
+            throw new ValidationError('Invalid inputArgs', parseResult.error.issues);
+        }
+    }
+
     const updatedTask = await taskRepository.updateTask(id, data);
     if (!updatedTask) return null;
 
