@@ -22,6 +22,9 @@ export async function startTaskWorker() {
                 if (!task) {
                     throw new Error(`Task not found: ${job.data.taskId}`);
                 }
+                if (!task.enabled) {
+                    throw new Error(`Task is disabled: ${job.data.taskId}`);
+                }
 
                 const script = await Script.findById(task.scriptId);
                 if (!script) {
