@@ -3,6 +3,7 @@ import mongoose, { Document, Schema, Types } from 'mongoose';
 export enum TaskType {
     ONE_TIME = 'ONE_TIME',
     RECURRING = 'RECURRING',
+    MANY_TIMES = 'MANY_TIMES',
 }
 
 export interface ITask extends Document {
@@ -12,6 +13,7 @@ export interface ITask extends Document {
     startDate: Date;
     endDate?: Date;
     interval?: number;
+    runDates?: Date[];
 }
 
 const taskSchema = new Schema<ITask>(
@@ -27,6 +29,12 @@ const taskSchema = new Schema<ITask>(
                 return this.type === TaskType.RECURRING;
             },
         }, // required if type is RECURRING
+        runDates: {
+            type: [Date],
+            required: function () {
+                return this.type === TaskType.MANY_TIMES;
+            },
+        }, // required if type is MANY_TIMES
     },
     { timestamps: true },
 );
