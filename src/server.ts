@@ -3,7 +3,7 @@ import app from './app.js';
 import { getLogger } from './utils/logger.js';
 import { bootEnv } from './config/bootConfig.js';
 
-import { loadRecurringTasks } from './workers/taskScheduler.js';
+import { loadManyTimesTasks, loadRecurringTasks } from './workers/taskScheduler.js';
 import { startTaskWorker } from './workers/taskWorker.js';
 
 const logger = getLogger().setTag('server.ts');
@@ -19,6 +19,7 @@ mongoose
         });
 
         loadRecurringTasks();
+        loadManyTimesTasks();
         startTaskWorker();
     })
     .catch((err) => {
