@@ -77,7 +77,7 @@ export async function scheduleManyTimesTask(task: ITask) {
             },
             {
                 jobId: jobId,
-                delay: runDate.getTime(),
+                delay: Math.max(0, runDate.getTime() - Date.now()),
             },
         );
 
