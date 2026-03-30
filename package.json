@@ -43,7 +43,8 @@
         "mongoose": "^9.0.2",
         "swagger-jsdoc": "^6.2.8",
         "swagger-ui-express": "^5.0.1",
-        "yamljs": "^0.3.0"
+        "yamljs": "^0.3.0",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@commitlint/cli": "^20.2.0",
