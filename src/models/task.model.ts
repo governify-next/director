@@ -33,6 +33,7 @@ const taskSchema = new Schema<ITask>(
         }, // required if type is RECURRING
         runDates: {
             type: [Date],
+            default: undefined,
             required: function () {
                 return this.type === TaskType.MANY_TIMES;
             },
