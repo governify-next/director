@@ -1,7 +1,12 @@
 import { Types } from 'mongoose';
+import type { Logger } from '../utils/logger.js';
 
-export interface TaskExecutionContext {
+export interface TaskExecutionJobData {
     taskId: Types.ObjectId;
+}
+
+export interface TaskExecutionContext extends TaskExecutionJobData {
+    logger: Logger;
 }
 
 export type ScriptHandler = (
