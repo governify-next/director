@@ -5,17 +5,14 @@ const name = 'example.echo';
 const description =
     'A simple script that echoes a message. Receives a single argument "message" and returns it along with the execution context and a timestamp.';
 
-const validate = (args: Record<string, unknown>) => {
-    return z
-        .object({
-            message: z.string(),
-        })
-        .parse(args);
-};
+const inputSchema = z.object({
+    message: z.string(),
+});
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
+    const { message } = inputSchema.parse(args);
     return {
-        message: args.message,
+        message,
         context: context,
         timestamp: new Date().toISOString(),
     };
@@ -24,7 +21,7 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
 const module: ScriptModule = {
     name,
     description,
-    validate,
+    inputSchema,
     exec,
 };
 

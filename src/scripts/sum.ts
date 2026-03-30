@@ -5,17 +5,13 @@ const name = 'sum';
 const description =
     'A simple script that sums two numbers. Performs basic validation on the input arguments, which are a and b.';
 
-const validate = (args: Record<string, unknown>) => {
-    return z
-        .object({
-            a: z.number(),
-            b: z.number(),
-        })
-        .parse(args);
-};
+const inputSchema = z.object({
+    a: z.number(),
+    b: z.number(),
+});
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
-    const { a, b } = validate(args);
+    const { a, b } = inputSchema.parse(args);
     const { taskId, logger } = context;
 
     logger.info(`Executing sum script for task ${taskId}.`);
@@ -25,7 +21,7 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
 const module: ScriptModule = {
     name,
     description,
-    validate,
+    inputSchema,
     exec,
 };
 

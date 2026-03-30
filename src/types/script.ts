@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import type { Logger } from '../utils/logger.js';
+import { z } from 'zod';
 
 export interface TaskExecutionJobData {
     taskId: Types.ObjectId;
@@ -15,5 +16,8 @@ export type ScriptHandler = (
 ) => Promise<unknown>;
 
 export interface ScriptModule {
-    default: ScriptHandler;
+    name: string;
+    description: string;
+    inputSchema: z.ZodObject;
+    exec: ScriptHandler;
 }
