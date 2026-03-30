@@ -5,6 +5,7 @@ import { bootEnv } from './config/bootConfig.js';
 
 import { loadManyTimesTasks, loadRecurringTasks } from './workers/taskScheduler.js';
 import { startTaskWorker } from './workers/taskWorker.js';
+import { startQueueCleanup } from './workers/taskQueue.js';
 
 const logger = getLogger().setTag('server.ts');
 const PORT = bootEnv.PORT;
@@ -21,6 +22,7 @@ mongoose
         loadRecurringTasks();
         loadManyTimesTasks();
         startTaskWorker();
+        startQueueCleanup();
     })
     .catch((err) => {
         logger.error('Failed to connect to MongoDB', err);
