@@ -20,12 +20,7 @@ const taskSchema = new Schema<ITask>(
         inputArgs: { type: Schema.Types.Mixed, default: {} },
         type: { type: String, enum: Object.values(TaskType), required: true },
         startDate: { type: Date, required: true },
-        endDate: {
-            type: Date,
-            required: function () {
-                return this.type === TaskType.RECURRING;
-            },
-        },
+        endDate: { type: Date },
         interval: {
             type: Number,
             required: function () {
