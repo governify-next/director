@@ -1,8 +1,7 @@
 import { Worker } from 'bullmq';
 import Task from '../models/task.model.js';
-import Script from '../models/script.model.js';
 import TaskExecution, { TaskExecutionStatus } from '../models/taskExecution.model.js';
-import { loadScriptHandler } from '../services/script.service.js';
+import { getScriptByName } from '../services/script.service.js';
 import { bootEnv } from '../config/bootConfig.js';
 import { QUEUE_NAME } from './taskQueue.js';
 import { TaskExecutionContext, TaskExecutionJobData } from '../types/script.js';
@@ -29,22 +28,20 @@ export async function startTaskWorker() {
                     throw new Error(`Task is disabled: ${job.data.taskId}`);
                 }
 
-                const script = await Script.findById(task.scriptId);
+                const script = getScriptByName(task.script);
                 if (!script) {
-                    throw new Error(`Script not found for task: ${job.data.taskId}`);
+                    throw new Error(`Script not found: ${task.script}`);
                 }
 
                 const scriptLogger = getLogger().setTag(`task:${job.data.taskId}:${script.name}`);
                 scriptLogger.setCapture((line) => scriptLogs.push(line));
-
-                const scriptFunction = await loadScriptHandler(script.moduleRef);
 
                 const scriptContext: TaskExecutionContext = {
                     taskId: task._id,
                     logger: scriptLogger,
                 };
 
-                const result = await scriptFunction(task.inputArgs, scriptContext);
+                const result = await script.exec(task.inputArgs, scriptContext);
 
                 await TaskExecution.findByIdAndUpdate(execution._id, {
                     status: TaskExecutionStatus.SUCCEEDED,
