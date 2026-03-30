@@ -10,6 +10,7 @@ export interface ITask extends Document {
     scriptId: Types.ObjectId;
     inputArgs: Record<string, unknown>;
     type: TaskType;
+    enabled: boolean;
     startDate: Date;
     endDate?: Date;
     interval?: number;
@@ -21,6 +22,7 @@ const taskSchema = new Schema<ITask>(
         scriptId: { type: Schema.Types.ObjectId, ref: 'Script', required: true },
         inputArgs: { type: Schema.Types.Mixed, default: {} },
         type: { type: String, enum: Object.values(TaskType), required: true },
+        enabled: { type: Boolean, default: true, required: true },
         startDate: { type: Date, required: true },
         endDate: { type: Date },
         interval: {
@@ -39,14 +41,7 @@ const taskSchema = new Schema<ITask>(
     { timestamps: true },
 );
 
-// Supports recurring activity windows filtered by type and date bounds.
-taskSchema.index({ type: 1, startDate: 1, endDate: 1 });
-
-// index to efficiently find active recurring tasks
-taskSchema.index(
-    { startDate: 1, endDate: 1 },
-    { partialFilterExpression: { type: TaskType.RECURRING } },
-);
+taskSchema.index({ type: 1, enabled: 1, startDate: 1, endDate: 1 });
 
 const Task = mongoose.model<ITask>('Task', taskSchema);
 
