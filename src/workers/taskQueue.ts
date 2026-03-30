@@ -38,7 +38,10 @@ export async function cleanupTaskJobs() {
     for (const job of jobs) {
         const taskId = job.data?.taskId;
 
-        if (!taskId || !(await getTaskById(taskId.toString()))) {
+        if (
+            (!taskId || !(await getTaskById(taskId.toString()))) &&
+            !job.id?.startsWith('repeat:')
+        ) {
             try {
                 await job.remove();
                 logger.info(`Removed orphan queue job ${job.id}.`);
