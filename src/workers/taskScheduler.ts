@@ -64,6 +64,10 @@ export async function removeOneTimeTask(taskId: string) {
 
 export async function scheduleManyTimesTask(task: ITask) {
     for (const runDate of task.runDates!) {
+        if (runDate.getTime() < Date.now()) {
+            continue;
+        }
+
         const jobId = `many-times-task-${task._id.toString()}-${runDate.getTime()}`;
 
         await taskQueue.add(
@@ -73,7 +77,7 @@ export async function scheduleManyTimesTask(task: ITask) {
             },
             {
                 jobId: jobId,
-                delay: Math.max(0, runDate.getTime() - Date.now()),
+                delay: runDate.getTime(),
             },
         );
 
