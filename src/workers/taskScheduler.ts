@@ -62,11 +62,49 @@ export async function removeOneTimeTask(taskId: string) {
     }
 }
 
+export async function scheduleManyTimesTask(task: ITask) {
+    for (const runDate of task.runDates!) {
+        const jobId = `many-times-task-${task._id.toString()}-${runDate.getTime()}`;
+
+        await taskQueue.add(
+            'execute-many-times-task',
+            {
+                taskId: task._id,
+            },
+            {
+                jobId: jobId,
+                delay: Math.max(0, runDate.getTime() - Date.now()),
+            },
+        );
+
+        logger.debug(
+            `Scheduled many-times task ${task._id.toString()} for run date ${runDate.toISOString()}.`,
+        );
+    }
+}
+
+export async function removeManyTimesTask(task: ITask) {
+    for (const runDate of task.runDates!) {
+        const jobId = `many-times-task-${task._id.toString()}-${runDate.getTime()}`;
+
+        try {
+            await taskQueue.remove(jobId);
+        } catch (error) {
+            logger.debug(
+                `Many-times job for task ${task._id} and run date ${runDate.toISOString()} was not removed.`,
+                error,
+            );
+        }
+    }
+}
+
 export async function scheduleTask(task: ITask) {
     if (task.type === TaskType.RECURRING) {
         await scheduleRecurringTask(task);
     } else if (task.type === TaskType.ONE_TIME) {
         await scheduleOneTimeTask(task);
+    } else if (task.type === TaskType.MANY_TIMES) {
+        await scheduleManyTimesTask(task);
     }
 }
 
@@ -75,6 +113,8 @@ export async function removeTask(task: ITask) {
         await removeRecurringTask(task._id.toString());
     } else if (task.type === TaskType.ONE_TIME) {
         await removeOneTimeTask(task._id.toString());
+    } else if (task.type === TaskType.MANY_TIMES) {
+        await removeManyTimesTask(task);
     }
 }
 
@@ -99,4 +139,26 @@ export async function loadRecurringTasks() {
     }
 
     logger.info(`Finished loading recurring tasks from database.`);
+}
+
+export async function loadManyTimesTasks() {
+    const now = new Date();
+
+    const activeManyTimesTasks = await Task.find({
+        type: TaskType.MANY_TIMES,
+        runDates: { $elemMatch: { $gte: now } },
+    });
+
+    logger.info(`Found ${activeManyTimesTasks.length} active many-times tasks.`);
+
+    for (const task of activeManyTimesTasks) {
+        try {
+            logger.debug(`Scheduling many-times task ${task._id} from database.`);
+            await scheduleManyTimesTask(task);
+        } catch (error) {
+            logger.error(`Failed scheduling many-times task ${task._id} during load.`, error);
+        }
+    }
+
+    logger.info(`Finished loading many-times tasks from database.`);
 }
