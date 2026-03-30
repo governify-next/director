@@ -20,10 +20,14 @@ export async function cleanupRecurringSchedulers() {
 
         if (!taskId || !(await getTaskById(taskId.toString()))) {
             try {
-                await taskQueue.removeJobScheduler(scheduler.id!);
-                logger.info(`Removed orphan recurring scheduler ${scheduler.id}.`);
+                await taskQueue.removeJobScheduler(scheduler.key);
+                console.log(scheduler);
+                logger.info(`Removed orphan recurring scheduler ${scheduler.key}.`);
             } catch (error) {
-                logger.error(`Failed to remove orphan recurring scheduler ${scheduler.id}.`, error);
+                logger.error(
+                    `Failed to remove orphan recurring scheduler ${scheduler.key}.`,
+                    error,
+                );
             }
         }
     }
