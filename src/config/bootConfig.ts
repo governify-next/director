@@ -12,4 +12,5 @@ export const bootEnv = {
     MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/mern_example',
     REDIS_URI: process.env.REDIS_URI || 'redis://localhost:6379',
     WORKER_CONCURRENCY: parseInt(process.env.WORKER_CONCURRENCY || '1'),
+    QUEUE_CLEANUP_INTERVAL: parseInt(process.env.QUEUE_CLEANUP_INTERVAL || '60000'),
 };
