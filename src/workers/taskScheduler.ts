@@ -5,7 +5,7 @@ import { taskQueue } from './taskQueue.js';
 const logger = getLogger().setTag('taskScheduler.ts');
 
 export async function scheduleRecurringTask(task: ITask) {
-    const jobSchedulerId = `recurring-task-${task._id.toString()}`;
+    const jobSchedulerId = `recurring-task-${task._id}`;
 
     await taskQueue.upsertJobScheduler(
         jobSchedulerId,
@@ -36,7 +36,7 @@ export async function removeRecurringTask(taskId: string) {
 }
 
 export async function scheduleOneTimeTask(task: ITask) {
-    const jobId = `one-time-task-${task._id.toString()}`;
+    const jobId = `one-time-task-${task._id}`;
 
     await taskQueue.add(
         'execute-one-time-task',
@@ -49,7 +49,7 @@ export async function scheduleOneTimeTask(task: ITask) {
         },
     );
 
-    logger.debug(`Scheduled one-time task ${task._id.toString()}.`);
+    logger.debug(`Scheduled one-time task ${task._id}.`);
 }
 
 export async function removeOneTimeTask(taskId: string) {
@@ -68,7 +68,7 @@ export async function scheduleManyTimesTask(task: ITask) {
             continue;
         }
 
-        const jobId = `many-times-task-${task._id.toString()}-${runDate.getTime()}`;
+        const jobId = `many-times-task-${task._id}-${runDate.getTime()}`;
 
         await taskQueue.add(
             'execute-many-times-task',
@@ -82,14 +82,14 @@ export async function scheduleManyTimesTask(task: ITask) {
         );
 
         logger.debug(
-            `Scheduled many-times task ${task._id.toString()} for run date ${runDate.toISOString()}.`,
+            `Scheduled many-times task ${task._id} for run date ${runDate.toISOString()}.`,
         );
     }
 }
 
 export async function removeManyTimesTask(task: ITask) {
     for (const runDate of task.runDates!) {
-        const jobId = `many-times-task-${task._id.toString()}-${runDate.getTime()}`;
+        const jobId = `many-times-task-${task._id}-${runDate.getTime()}`;
 
         try {
             await taskQueue.remove(jobId);
