@@ -3,12 +3,15 @@ import exampleEcho from '../scripts/example.echo.js';
 import sum from '../scripts/sum.js';
 
 // list of all available scripts in the system - add new scripts here
-const scriptRegistry: ScriptModule[] = [exampleEcho, sum];
+const scriptRegistry: Record<string, ScriptModule> = {
+    [exampleEcho.name]: exampleEcho,
+    [sum.name]: sum,
+};
 
 export const getScripts = () => {
-    return scriptRegistry;
+    return Object.values(scriptRegistry);
 };
 
 export const getScriptByName = (name: string) => {
-    return scriptRegistry.find((script) => script.name === name);
+    return scriptRegistry[name];
 };
