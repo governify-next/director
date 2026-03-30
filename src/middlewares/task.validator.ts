@@ -21,11 +21,11 @@ export const validateTask = [
     body('startDate')
         .exists({ checkNull: true })
         .withMessage('startDate is required')
-        .isISO8601()
+        .isISO8601({ strict: true })
         .withMessage('startDate must be a valid ISO8601 date'),
     body('endDate')
         .optional()
-        .isISO8601()
+        .isISO8601({ strict: true })
         .withMessage('endDate must be a valid ISO8601 date')
         .isAfter()
         .withMessage('endDate must be in the future')
@@ -46,6 +46,23 @@ export const validateTask = [
         .not()
         .exists({ checkNull: true })
         .withMessage('interval is only allowed for recurring tasks'),
+    body('runDates')
+        .if(body('type').equals(TaskType.MANY_TIMES))
+        .exists({ checkNull: true })
+        .withMessage('runDates is required for many times tasks')
+        .isArray({ min: 1 })
+        .withMessage('runDates must be a non-empty array of date strings'),
+    body('runDates.*')
+        .if(body('type').equals(TaskType.MANY_TIMES))
+        .isISO8601({ strict: true })
+        .withMessage('Each runDate must be a valid ISO8601 date string')
+        .isAfter()
+        .withMessage('Each runDate must be in the future'),
+    body('runDates')
+        .if(body('type').not().equals(TaskType.MANY_TIMES))
+        .not()
+        .exists({ checkNull: true })
+        .withMessage('runDates is only allowed for many times tasks'),
     (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
