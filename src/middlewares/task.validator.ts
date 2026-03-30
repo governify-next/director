@@ -4,11 +4,15 @@ import { ValidationError } from '../utils/customErrors.js';
 import { TaskType } from '../models/task.model.js';
 
 export const validateTask = [
-    body('scriptId')
+    body('script')
         .exists({ checkNull: true })
-        .withMessage('scriptId is required')
-        .isMongoId()
-        .withMessage('scriptId must be a valid Mongo id'),
+        .withMessage('script name is required')
+        .isString()
+        .withMessage(`script name must be a string`)
+        .notEmpty()
+        .withMessage(`script name must not be empty`)
+        .isLength({ min: 2, max: 100 })
+        .withMessage(`script name must be between 2 and 100 characters`),
     body('inputArgs')
         .optional()
         .isObject({ strict: true })
