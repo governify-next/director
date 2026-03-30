@@ -11,4 +11,7 @@ taskRoutes.post('/', validateTask, taskController.createTask);
 taskRoutes.put('/:id', validateMongoId, validateTask, taskController.updateTask);
 taskRoutes.delete('/:id', validateMongoId, taskController.deleteTask);
 
+taskRoutes.post('/:id/enable', validateMongoId, taskController.enableTask);
+taskRoutes.post('/:id/disable', validateMongoId, taskController.disableTask);
+
 taskRoutes.get('/:id/executions', validateMongoId, taskController.getTaskExecutions);
