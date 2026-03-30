@@ -2,11 +2,17 @@ import * as taskRepository from '../repositories/task.repository.js';
 import * as scriptRepository from '../repositories/script.repository.js';
 import * as taskScheduler from '../workers/taskScheduler.js';
 import { ITask } from '../models/task.model.js';
+import { ValidationError } from '../utils/customErrors.js';
 
 export const createTask = async (data: Partial<ITask>) => {
     const script = scriptRepository.getScriptByName(data.script!);
     if (!script) {
         throw new Error('Script not found');
+    }
+
+    const parseResult = script.inputSchema.safeParse(data.inputArgs);
+    if (!parseResult.success) {
+        throw new ValidationError('Invalid inputArgs', parseResult.error.issues);
     }
 
     const task = await taskRepository.createTask(data);
