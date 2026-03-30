@@ -357,9 +357,9 @@ components:
                 _id:
                     type: string
                     description: MongoDB ObjectId
-                scriptId:
+                script:
                     type: string
-                    description: Reference to Script ID
+                    description: Reference to Script (name)
                 inputArgs:
                     type: object
                     description: Input arguments for the script
@@ -396,13 +396,13 @@ components:
         TaskInput:
             type: object
             required:
-                - scriptId
+                - script
                 - type
                 - startDate
             properties:
-                scriptId:
+                script:
                     type: string
-                    description: Reference to Script ID
+                    description: Reference to Script (name)
                 inputArgs:
                     type: object
                     description: Input arguments for the script
