@@ -123,6 +123,7 @@ export async function loadRecurringTasks() {
 
     const activeRecurringTasks = await Task.find({
         type: TaskType.RECURRING,
+        enabled: true,
         startDate: { $lte: now },
         $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: now } }],
     });
@@ -146,6 +147,7 @@ export async function loadManyTimesTasks() {
 
     const activeManyTimesTasks = await Task.find({
         type: TaskType.MANY_TIMES,
+        enabled: true,
         runDates: { $elemMatch: { $gte: now } },
     });
 
