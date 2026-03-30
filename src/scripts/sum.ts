@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ScriptHandler, TaskExecutionContext } from '../types/script.js';
+import { ScriptHandler, ScriptModule, TaskExecutionContext } from '../types/script.js';
 
 const name = 'sum';
 const description =
@@ -22,4 +22,11 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     return `Hello from the sum script! ${a} + ${b} = ${a + b}`;
 };
 
-export default { name, description, validate, exec };
+const module: ScriptModule = {
+    name,
+    description,
+    validate,
+    exec,
+};
+
+export default module;

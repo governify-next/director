@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ScriptHandler, TaskExecutionContext } from '../types/script.js';
+import { ScriptHandler, ScriptModule, TaskExecutionContext } from '../types/script.js';
 
 const name = 'example.echo';
 const description =
@@ -21,4 +21,11 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     };
 };
 
-export default { name, description, validate, exec };
+const module: ScriptModule = {
+    name,
+    description,
+    validate,
+    exec,
+};
+
+export default module;
