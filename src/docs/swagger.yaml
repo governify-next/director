@@ -21,14 +21,14 @@ paths:
                                 properties:
                                     status:
                                         type: string
-    /api/v1/users:
+    /api/v1/scripts:
         get:
             tags:
-                - Users
-            summary: List all users
+                - Scripts
+            summary: List all scripts
             responses:
                 '200':
-                    description: A list of users
+                    description: A list of scripts
                     content:
                         application/json:
                             schema:
@@ -37,37 +37,37 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/User'
+                                            $ref: '#/components/schemas/Script'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
         post:
             tags:
-                - Users
-            summary: Create a new user
+                - Script
+            summary: Create a new script
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserInput'
+                            $ref: '#/components/schemas/ScriptInput'
             responses:
                 '201':
-                    description: User created
+                    description: Script created
                     content:
                         application/json:
                             schema:
                                 type: object
                                 properties:
                                     data:
-                                        $ref: '#/components/schemas/User'
+                                        $ref: '#/components/schemas/Script'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
                 '409':
-                    description: Email already exists
+                    description: Script name already exists
                     content:
                         application/json:
                             schema:
@@ -78,89 +78,89 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/v1/users/{id}:
+    /api/v1/scripts/{id}:
         get:
             tags:
-                - Users
-            summary: Get user by ID
+                - Scripts
+            summary: Get script by ID
             parameters:
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
-                  description: User ID (Mongo ObjectId)
+                  description: Script ID (Mongo ObjectId)
             responses:
                 '200':
-                    description: User found
+                    description: Script found
                     content:
                         application/json:
                             schema:
                                 type: object
                                 properties:
                                     data:
-                                        $ref: '#/components/schemas/User'
+                                        $ref: '#/components/schemas/Script'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
                 '404':
-                    description: User not found
+                    description: Script not found
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
         put:
             tags:
-                - Users
-            summary: Update user by ID
+                - Scripts
+            summary: Update script by ID
             parameters:
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
-                  description: User ID (Mongo ObjectId)
+                  description: Script ID (Mongo ObjectId)
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserInput'
+                            $ref: '#/components/schemas/ScriptInput'
             responses:
                 '200':
-                    description: User updated
+                    description: Script updated
                     content:
                         application/json:
                             schema:
                                 type: object
                                 properties:
                                     data:
-                                        $ref: '#/components/schemas/User'
+                                        $ref: '#/components/schemas/Script'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
                 '404':
-                    description: User not found
+                    description: Script not found
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
         delete:
             tags:
-                - Users
-            summary: Delete user by ID
+                - Scripts
+            summary: Delete script by ID
             parameters:
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
-                  description: User ID (Mongo ObjectId)
+                  description: Script ID (Mongo ObjectId)
             responses:
                 '200':
-                    description: User deleted
+                    description: Script deleted
                     content:
                         application/json:
                             schema:
@@ -173,7 +173,262 @@ paths:
                                     success:
                                         type: boolean
                 '404':
-                    description: User not found
+                    description: Script not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks:
+        get:
+            tags:
+                - Tasks
+            summary: List all tasks
+            responses:
+                '200':
+                    description: A list of tasks
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+        post:
+            tags:
+                - Tasks
+            summary: Create a new task
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskInput'
+            responses:
+                '201':
+                    description: Task created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '400':
+                    description: Invalid input
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}:
+        get:
+            tags:
+                - Tasks
+            summary: Get task by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: Task found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+        put:
+            tags:
+                - Tasks
+            summary: Update task by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskInput'
+            responses:
+                '200':
+                    description: Task updated
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+        delete:
+            tags:
+                - Tasks
+            summary: Delete task by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: Task deleted
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: 'null'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}/enable:
+        post:
+            tags:
+                - Tasks
+            summary: Enable task by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: Task enabled
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}/disable:
+        post:
+            tags:
+                - Tasks
+            summary: Disable task by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: Task disabled
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}/executions:
+        get:
+            tags:
+                - Tasks
+            summary: Get task executions by task ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: List of task executions
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/TaskExecution'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
                     content:
                         application/json:
                             schema:
@@ -181,41 +436,153 @@ paths:
 
 components:
     schemas:
-        User:
+        Script:
             type: object
             required:
                 - _id
                 - name
-                - email
+                - moduleRef
             properties:
                 _id:
                     type: string
                     description: MongoDB ObjectId
                 name:
                     type: string
-                email:
+                description:
                     type: string
-                password:
+                moduleRef:
                     type: string
+                inputSchema:
+                    type: object
                 createdAt:
                     type: string
                     format: date-time
                 updatedAt:
                     type: string
                     format: date-time
-        UserInput:
+        ScriptInput:
             type: object
             required:
                 - name
-                - email
-                - password
+                - moduleRef
             properties:
                 name:
                     type: string
-                email:
+                description:
                     type: string
-                password:
+                moduleRef:
                     type: string
+                inputSchema:
+                    type: object
+        Task:
+            type: object
+            required:
+                - _id
+                - scriptId
+                - type
+                - enabled
+                - startDate
+            properties:
+                _id:
+                    type: string
+                    description: MongoDB ObjectId
+                scriptId:
+                    type: string
+                    description: Reference to Script ID
+                inputArgs:
+                    type: object
+                    description: Input arguments for the script
+                type:
+                    type: string
+                    enum: [ONE_TIME, RECURRING, MANY_TIMES]
+                    description: Type of task
+                enabled:
+                    type: boolean
+                    description: Whether task is enabled
+                startDate:
+                    type: string
+                    format: date-time
+                    description: When the task starts
+                endDate:
+                    type: string
+                    format: date-time
+                    description: When the task ends (optional)
+                interval:
+                    type: number
+                    description: Interval in milliseconds for recurring tasks (required if type is RECURRING)
+                runDates:
+                    type: array
+                    items:
+                        type: string
+                        format: date-time
+                    description: Specific dates to run for MANY_TIMES tasks (required if type is MANY_TIMES)
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+        TaskInput:
+            type: object
+            required:
+                - scriptId
+                - type
+                - startDate
+            properties:
+                scriptId:
+                    type: string
+                    description: Reference to Script ID
+                inputArgs:
+                    type: object
+                    description: Input arguments for the script
+                type:
+                    type: string
+                    enum: [ONE_TIME, RECURRING, MANY_TIMES]
+                    description: Type of task
+                enabled:
+                    type: boolean
+                    description: Whether task is enabled (default true)
+                startDate:
+                    type: string
+                    format: date-time
+                    description: When the task starts
+                endDate:
+                    type: string
+                    format: date-time
+                    description: When the task ends (optional)
+                interval:
+                    type: number
+                    description: Interval in milliseconds for recurring tasks (required if type is RECURRING)
+                runDates:
+                    type: array
+                    items:
+                        type: string
+                        format: date-time
+                    description: Specific dates to run for MANY_TIMES tasks (required if type is MANY_TIMES)
+        TaskExecution:
+            type: object
+            properties:
+                _id:
+                    type: string
+                    description: MongoDB ObjectId
+                taskId:
+                    type: string
+                    description: Reference to Task ID
+                status:
+                    type: string
+                    description: Execution status
+                result:
+                    type: object
+                    description: Execution result
+                error:
+                    type: string
+                    description: Error message if execution failed
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
         Error:
             type: object
             properties:
