@@ -3,6 +3,7 @@ import exampleEcho from '../scripts/example.echo.js';
 import sum from '../scripts/sum.js';
 
 // list of all available scripts in the system - add new scripts here
+// script.name -> ScriptModule
 const scriptRegistry: Record<string, ScriptModule> = {
     [exampleEcho.name]: exampleEcho,
     [sum.name]: sum,
