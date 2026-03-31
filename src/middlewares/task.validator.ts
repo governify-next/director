@@ -63,22 +63,22 @@ export const validateTask = [
         .exists({ checkNull: true })
         .withMessage('interval is only allowed for recurring tasks'),
     body('runDates')
-        .if(body('type').equals(TaskType.SCHEDULED))
+        .if(body('type').equals(TaskType.PROGRAMMED))
         .exists({ checkNull: true })
-        .withMessage('runDates is required for scheduled tasks')
+        .withMessage('runDates is required for programmed tasks')
         .isArray({ min: 1 })
         .withMessage('runDates must be a non-empty array of date strings'),
     body('runDates.*')
-        .if(body('type').equals(TaskType.SCHEDULED))
+        .if(body('type').equals(TaskType.PROGRAMMED))
         .isISO8601({ strict: true })
         .withMessage('Each runDate must be a valid ISO8601 date string')
         .isAfter()
         .withMessage('Each runDate must be in the future'),
     body('runDates')
-        .if(body('type').not().equals(TaskType.SCHEDULED))
+        .if(body('type').not().equals(TaskType.PROGRAMMED))
         .not()
         .exists({ checkNull: true })
-        .withMessage('runDates is only allowed for scheduled tasks'),
+        .withMessage('runDates is only allowed for programmed tasks'),
     (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

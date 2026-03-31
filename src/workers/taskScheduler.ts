@@ -51,16 +51,16 @@ export async function scheduleImmediateTask(task: ITask) {
     logger.debug(`Scheduled immediate task ${task._id}.`);
 }
 
-export async function scheduleScheduledTask(task: ITask) {
+export async function scheduleProgrammedTask(task: ITask) {
     for (const runDate of task.runDates!) {
         if (runDate.getTime() < Date.now()) {
             continue;
         }
 
-        const jobId = `scheduled-task-${task._id}-${runDate.getTime()}`;
+        const jobId = `programmed-task-${task._id}-${runDate.getTime()}`;
 
         await taskQueue.add(
-            'execute-scheduled-task',
+            'execute-programmed-task',
             {
                 taskId: task._id,
             },
@@ -70,19 +70,21 @@ export async function scheduleScheduledTask(task: ITask) {
             },
         );
 
-        logger.debug(`Scheduled task ${task._id} for run date ${runDate.toISOString()}.`);
+        logger.debug(
+            `Scheduled programmed task ${task._id} for run date ${runDate.toISOString()}.`,
+        );
     }
 }
 
-export async function removeScheduledTask(task: ITask) {
+export async function removeProgrammedTask(task: ITask) {
     for (const runDate of task.runDates!) {
-        const jobId = `scheduled-task-${task._id}-${runDate.getTime()}`;
+        const jobId = `programmed-task-${task._id}-${runDate.getTime()}`;
 
         try {
             await taskQueue.remove(jobId);
         } catch (error) {
             logger.debug(
-                `Scheduled job for task ${task._id} and run date ${runDate.toISOString()} was not removed.`,
+                `Scheduled job for programmed task ${task._id} and run date ${runDate.toISOString()} was not removed.`,
                 error,
             );
         }
@@ -94,16 +96,16 @@ export async function scheduleTask(task: ITask) {
         await scheduleRecurringTask(task);
     } else if (task.type === TaskType.IMMEDIATE) {
         await scheduleImmediateTask(task);
-    } else if (task.type === TaskType.SCHEDULED) {
-        await scheduleScheduledTask(task);
+    } else if (task.type === TaskType.PROGRAMMED) {
+        await scheduleProgrammedTask(task);
     }
 }
 
 export async function removeTask(task: ITask) {
     if (task.type === TaskType.RECURRING) {
         await removeRecurringTask(task._id.toString());
-    } else if (task.type === TaskType.SCHEDULED) {
-        await removeScheduledTask(task);
+    } else if (task.type === TaskType.PROGRAMMED) {
+        await removeProgrammedTask(task);
     }
 }
 
@@ -131,25 +133,25 @@ export async function loadRecurringTasks() {
     logger.info(`Finished loading recurring tasks from database.`);
 }
 
-export async function loadScheduledTasks() {
+export async function loadProgrammedTasks() {
     const now = new Date();
 
-    const activeScheduledTasks = await Task.find({
-        type: TaskType.SCHEDULED,
+    const activeProgrammedTasks = await Task.find({
+        type: TaskType.PROGRAMMED,
         enabled: true,
         runDates: { $elemMatch: { $gte: now } },
     });
 
-    logger.info(`Found ${activeScheduledTasks.length} active scheduled tasks.`);
+    logger.info(`Found ${activeProgrammedTasks.length} active programmed tasks.`);
 
-    for (const task of activeScheduledTasks) {
+    for (const task of activeProgrammedTasks) {
         try {
-            logger.debug(`Scheduling task ${task._id} from database.`);
-            await scheduleScheduledTask(task);
+            logger.debug(`Scheduling programmed task ${task._id} from database.`);
+            await scheduleProgrammedTask(task);
         } catch (error) {
-            logger.error(`Failed scheduling task ${task._id} during load.`, error);
+            logger.error(`Failed scheduling programmed task ${task._id} during load.`, error);
         }
     }
 
-    logger.info(`Finished loading scheduled tasks from database.`);
+    logger.info(`Finished loading programmed tasks from database.`);
 }

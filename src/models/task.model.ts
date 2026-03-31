@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export enum TaskType {
     IMMEDIATE = 'IMMEDIATE',
     RECURRING = 'RECURRING',
-    SCHEDULED = 'SCHEDULED',
+    PROGRAMMED = 'PROGRAMMED',
 }
 
 export interface ITask extends Document {
@@ -40,7 +40,7 @@ const taskSchema = new Schema<ITask>(
             type: [Date],
             default: undefined,
             required: function () {
-                return this.type === TaskType.SCHEDULED;
+                return this.type === TaskType.PROGRAMMED;
             },
         },
     },
