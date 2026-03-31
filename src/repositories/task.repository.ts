@@ -19,6 +19,7 @@ export const updateTask = async (id: string, data: Partial<ITask>) => {
 };
 
 export const deleteTask = async (id: string) => {
+    await TaskExecution.deleteMany({ taskId: id });
     return await Task.findByIdAndDelete(id);
 };
 
