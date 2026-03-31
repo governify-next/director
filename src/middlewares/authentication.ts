@@ -17,6 +17,12 @@ export interface JwtPayload {
 }
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (bootEnv.NODE_ENV === 'development') {
+        logger.info(
+            'Skipping authentication in development environment!! DO NOT USE IN PRODUCTION!!',
+        );
+        return next();
+    }
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return next(new UnauthorizedError('Authorization header missing or malformed'));
