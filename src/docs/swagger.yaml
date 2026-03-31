@@ -105,9 +105,8 @@ paths:
                                               inputArgs:
                                                   a: 10
                                                   b: 25
-                                              type: ONE_TIME
+                                              type: IMMEDIATE
                                               enabled: true
-                                              startDate: '2026-04-02T10:00:00.000Z'
                                               createdAt: '2026-04-01T09:00:00.000Z'
                                               updatedAt: '2026-04-01T09:00:00.000Z'
                                             - _id: 67f0a1b2c3d4e5f607182931
@@ -127,9 +126,8 @@ paths:
                                               inputArgs:
                                                   a: 100
                                                   b: 250
-                                              type: MANY_TIMES
+                                              type: PROGRAMMED
                                               enabled: true
-                                              startDate: '2026-04-02T10:00:00.000Z'
                                               runDates:
                                                   - '2026-04-02T10:01:00.000Z'
                                                   - '2026-04-02T10:05:00.000Z'
@@ -149,12 +147,12 @@ paths:
                         schema:
                             $ref: '#/components/schemas/TaskInput'
                         examples:
-                            oneTimeSum:
-                                $ref: '#/components/examples/TaskInputOneTimeSum'
+                            immediateSum:
+                                $ref: '#/components/examples/TaskInputImmediateSum'
                             recurringSum:
                                 $ref: '#/components/examples/TaskInputRecurringSum'
-                            manyTimesSum:
-                                $ref: '#/components/examples/TaskInputManyTimesSum'
+                            programmedSum:
+                                $ref: '#/components/examples/TaskInputProgrammedSum'
             responses:
                 '201':
                     description: Task created
@@ -231,12 +229,12 @@ paths:
                         schema:
                             $ref: '#/components/schemas/TaskInput'
                         examples:
-                            oneTimeSum:
-                                $ref: '#/components/examples/TaskInputOneTimeSum'
+                            immediateSum:
+                                $ref: '#/components/examples/TaskInputImmediateSum'
                             recurringSum:
                                 $ref: '#/components/examples/TaskInputRecurringSum'
-                            manyTimesSum:
-                                $ref: '#/components/examples/TaskInputManyTimesSum'
+                            programmedSum:
+                                $ref: '#/components/examples/TaskInputProgrammedSum'
             responses:
                 '200':
                     description: Task updated
@@ -389,16 +387,15 @@ paths:
 
 components:
     examples:
-        TaskInputOneTimeSum:
-            summary: ONE_TIME task using the sum script
+        TaskInputImmediateSum:
+            summary: IMMEDIATE task using the sum script
             value:
                 script: sum
                 inputArgs:
                     a: 10
                     b: 25
-                type: ONE_TIME
+                type: IMMEDIATE
                 enabled: true
-                startDate: '2026-04-02T10:00:00.000Z'
         TaskInputRecurringSum:
             summary: RECURRING task using the sum script
             value:
@@ -411,16 +408,15 @@ components:
                 startDate: '2026-04-02T10:00:00.000Z'
                 endDate: '2026-04-09T10:00:00.000Z'
                 interval: 60000
-        TaskInputManyTimesSum:
-            summary: MANY_TIMES task using the sum script
+        TaskInputProgrammedSum:
+            summary: PROGRAMMED task using the sum script
             value:
                 script: sum
                 inputArgs:
                     a: 100
                     b: 250
-                type: MANY_TIMES
+                type: PROGRAMMED
                 enabled: true
-                startDate: '2026-04-02T10:00:00.000Z'
                 runDates:
                     - '2026-04-02T10:01:00.000Z'
                     - '2026-04-02T10:05:00.000Z'
@@ -441,15 +437,15 @@ components:
                     type: object
         Task:
             oneOf:
-                - $ref: '#/components/schemas/TaskOneTime'
+                - $ref: '#/components/schemas/TaskImmediate'
                 - $ref: '#/components/schemas/TaskRecurring'
-                - $ref: '#/components/schemas/TaskManyTimes'
+                - $ref: '#/components/schemas/TaskProgrammed'
             discriminator:
                 propertyName: type
                 mapping:
-                    ONE_TIME: '#/components/schemas/TaskOneTime'
+                    IMMEDIATE: '#/components/schemas/TaskImmediate'
                     RECURRING: '#/components/schemas/TaskRecurring'
-                    MANY_TIMES: '#/components/schemas/TaskManyTimes'
+                    PROGRAMMED: '#/components/schemas/TaskProgrammed'
         TaskBase:
             type: object
             required:
@@ -457,7 +453,6 @@ components:
                 - script
                 - type
                 - enabled
-                - startDate
             properties:
                 _id:
                     type: string
@@ -470,39 +465,40 @@ components:
                     description: Input arguments for the script
                 type:
                     type: string
-                    enum: [ONE_TIME, RECURRING, MANY_TIMES]
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
                     description: Type of task
                 enabled:
                     type: boolean
                     description: Whether task is enabled
-                startDate:
-                    type: string
-                    format: date-time
-                    description: When the task starts
                 createdAt:
                     type: string
                     format: date-time
                 updatedAt:
                     type: string
                     format: date-time
-        TaskOneTime:
+        TaskImmediate:
             allOf:
                 - $ref: '#/components/schemas/TaskBase'
                 - type: object
                   properties:
                       type:
                           type: string
-                          enum: [ONE_TIME]
+                          enum: [IMMEDIATE]
         TaskRecurring:
             allOf:
                 - $ref: '#/components/schemas/TaskBase'
                 - type: object
                   required:
+                      - startDate
                       - interval
                   properties:
                       type:
                           type: string
                           enum: [RECURRING]
+                      startDate:
+                          type: string
+                          format: date-time
+                          description: When the recurring task starts (can be past or future)
                       endDate:
                           type: string
                           format: date-time
@@ -510,7 +506,7 @@ components:
                       interval:
                           type: number
                           description: Interval in milliseconds for recurring tasks
-        TaskManyTimes:
+        TaskProgrammed:
             allOf:
                 - $ref: '#/components/schemas/TaskBase'
                 - type: object
@@ -519,19 +515,18 @@ components:
                   properties:
                       type:
                           type: string
-                          enum: [MANY_TIMES]
+                          enum: [PROGRAMMED]
                       runDates:
                           type: array
                           items:
                               type: string
                               format: date-time
-                          description: Specific dates to run for MANY_TIMES tasks
+                          description: Specific dates to run for PROGRAMMED tasks
         TaskInput:
             type: object
             required:
                 - script
                 - type
-                - startDate
             description: Input payload to create or update a task.
             properties:
                 script:
@@ -542,7 +537,7 @@ components:
                     description: Input arguments for the script
                 type:
                     type: string
-                    enum: [ONE_TIME, RECURRING, MANY_TIMES]
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
                     description: Type of task
                 enabled:
                     type: boolean
@@ -550,44 +545,20 @@ components:
                 startDate:
                     type: string
                     format: date-time
-                    description: When the task starts
+                    description: When the task starts (for RECURRING tasks only)
                 endDate:
                     type: string
                     format: date-time
-                    description: When the task ends (optional)
+                    description: When the task ends (optional, for RECURRING tasks only)
                 interval:
                     type: number
-                    description: Interval in milliseconds for recurring tasks (required if type is RECURRING)
+                    description: Interval in milliseconds for recurring tasks (for RECURRING tasks only)
                 runDates:
                     type: array
                     items:
                         type: string
                         format: date-time
-                    description: Specific dates to run for MANY_TIMES tasks (required if type is MANY_TIMES)
-        TaskExecution:
-            type: object
-            properties:
-                _id:
-                    type: string
-                    description: MongoDB ObjectId
-                taskId:
-                    type: string
-                    description: Reference to Task ID
-                status:
-                    type: string
-                    description: Execution status
-                result:
-                    type: object
-                    description: Execution result
-                error:
-                    type: string
-                    description: Error message if execution failed
-                createdAt:
-                    type: string
-                    format: date-time
-                updatedAt:
-                    type: string
-                    format: date-time
+                    description: Specific dates to run at (for PROGRAMMED tasks only)
         Error:
             type: object
             properties:
