@@ -13,4 +13,5 @@ export const bootEnv = {
     REDIS_URI: process.env.REDIS_URI || 'redis://localhost:6379',
     WORKER_CONCURRENCY: parseInt(process.env.WORKER_CONCURRENCY || '1'),
     QUEUE_CLEANUP_INTERVAL: parseInt(process.env.QUEUE_CLEANUP_INTERVAL || '60000'),
+    JWT_SECRET: process.env.JWT_SECRET || 'your_jwt_secret_key',
 };
