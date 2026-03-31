@@ -23,11 +23,18 @@ export const validateTask = [
         .isIn(Object.values(TaskType))
         .withMessage(`type must be one of ${Object.values(TaskType).join(', ')}`),
     body('startDate')
+        .if(body('type').equals(TaskType.RECURRING))
         .exists({ checkNull: true })
-        .withMessage('startDate is required')
+        .withMessage('startDate is required for recurring tasks')
         .isISO8601({ strict: true })
         .withMessage('startDate must be a valid ISO8601 date'),
+    body('startDate')
+        .if(body('type').not().equals(TaskType.RECURRING))
+        .not()
+        .exists({ checkNull: true })
+        .withMessage('startDate is only allowed for recurring tasks'),
     body('endDate')
+        .if(body('type').equals(TaskType.RECURRING))
         .optional()
         .isISO8601({ strict: true })
         .withMessage('endDate must be a valid ISO8601 date')
@@ -39,6 +46,11 @@ export const validateTask = [
             }
             return true;
         }),
+    body('endDate')
+        .if(body('type').not().equals(TaskType.RECURRING))
+        .not()
+        .exists({ checkNull: true })
+        .withMessage('endDate is only allowed for recurring tasks'),
     body('interval')
         .if(body('type').equals(TaskType.RECURRING))
         .exists({ checkNull: true })
@@ -51,22 +63,22 @@ export const validateTask = [
         .exists({ checkNull: true })
         .withMessage('interval is only allowed for recurring tasks'),
     body('runDates')
-        .if(body('type').equals(TaskType.MANY_TIMES))
+        .if(body('type').equals(TaskType.SCHEDULED))
         .exists({ checkNull: true })
-        .withMessage('runDates is required for many times tasks')
+        .withMessage('runDates is required for scheduled tasks')
         .isArray({ min: 1 })
         .withMessage('runDates must be a non-empty array of date strings'),
     body('runDates.*')
-        .if(body('type').equals(TaskType.MANY_TIMES))
+        .if(body('type').equals(TaskType.SCHEDULED))
         .isISO8601({ strict: true })
         .withMessage('Each runDate must be a valid ISO8601 date string')
         .isAfter()
         .withMessage('Each runDate must be in the future'),
     body('runDates')
-        .if(body('type').not().equals(TaskType.MANY_TIMES))
+        .if(body('type').not().equals(TaskType.SCHEDULED))
         .not()
         .exists({ checkNull: true })
-        .withMessage('runDates is only allowed for many times tasks'),
+        .withMessage('runDates is only allowed for scheduled tasks'),
     (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
