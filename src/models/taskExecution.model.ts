@@ -16,18 +16,15 @@ export interface ITaskExecution extends Document {
     error?: unknown;
 }
 
-const taskExecutionSchema = new Schema<ITaskExecution>(
-    {
-        taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
-        startDate: { type: Date, required: true },
-        finishDate: { type: Date },
-        status: { type: String, enum: Object.values(TaskExecutionStatus), required: true },
-        result: { type: Schema.Types.Mixed },
-        log: [{ type: String }],
-        error: { type: Schema.Types.Mixed },
-    },
-    { timestamps: true },
-);
+const taskExecutionSchema = new Schema<ITaskExecution>({
+    taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
+    startDate: { type: Date, required: true },
+    finishDate: { type: Date },
+    status: { type: String, enum: Object.values(TaskExecutionStatus), required: true },
+    result: { type: Schema.Types.Mixed },
+    log: [{ type: String }],
+    error: { type: Schema.Types.Mixed },
+});
 
 const TaskExecution = mongoose.model<ITaskExecution>('TaskExecution', taskExecutionSchema);
 
