@@ -1,9 +1,9 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export enum TaskType {
-    ONE_TIME = 'ONE_TIME',
+    IMMEDIATE = 'IMMEDIATE',
     RECURRING = 'RECURRING',
-    MANY_TIMES = 'MANY_TIMES',
+    SCHEDULED = 'SCHEDULED',
 }
 
 export interface ITask extends Document {
@@ -11,7 +11,7 @@ export interface ITask extends Document {
     inputArgs: Record<string, unknown>;
     type: TaskType;
     enabled: boolean;
-    startDate: Date;
+    startDate?: Date;
     endDate?: Date;
     interval?: number;
     runDates?: Date[];
@@ -23,21 +23,26 @@ const taskSchema = new Schema<ITask>(
         inputArgs: { type: Schema.Types.Mixed, default: {} },
         type: { type: String, enum: Object.values(TaskType), required: true },
         enabled: { type: Boolean, default: true, required: true },
-        startDate: { type: Date, required: true },
+        startDate: {
+            type: Date,
+            required: function () {
+                return this.type === TaskType.RECURRING;
+            },
+        },
         endDate: { type: Date },
         interval: {
             type: Number,
             required: function () {
                 return this.type === TaskType.RECURRING;
             },
-        }, // required if type is RECURRING
+        },
         runDates: {
             type: [Date],
             default: undefined,
             required: function () {
-                return this.type === TaskType.MANY_TIMES;
+                return this.type === TaskType.SCHEDULED;
             },
-        }, // required if type is MANY_TIMES
+        },
     },
     { timestamps: true },
 );
