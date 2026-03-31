@@ -6,8 +6,13 @@ const envPath = process.env.GOV_BOOT_ENV_PATH || path.resolve(process.cwd(), '.e
 dotenv.config({ path: envPath });
 
 export const bootEnv = {
+    NODE_ENV: process.env.NODE_ENV || 'development',
     GOV_LOG_LEVEL: process.env.GOV_LOG_LEVEL || 'INFO',
-    GOV_SERVICE_NAME: process.env.GOV_SERVICE_NAME || 'UnknownService',
-    PORT: process.env.PORT || '3000',
-    MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/mern_example',
+    GOV_SERVICE_NAME: process.env.GOV_SERVICE_NAME || 'director',
+    PORT: process.env.PORT || '5903',
+    MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/governify',
+    REDIS_URI: process.env.REDIS_URI || 'redis://localhost:6379',
+    WORKER_CONCURRENCY: parseInt(process.env.WORKER_CONCURRENCY || '1'),
+    QUEUE_CLEANUP_INTERVAL: parseInt(process.env.QUEUE_CLEANUP_INTERVAL || '0'),
+    JWT_SECRET: process.env.JWT_SECRET || 'governify_secret_key',
 };

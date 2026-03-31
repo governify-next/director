@@ -21,14 +21,16 @@ paths:
                                 properties:
                                     status:
                                         type: string
-    /api/v1/users:
+    /api/v1/scripts:
         get:
             tags:
-                - Users
-            summary: List all users
+                - Scripts
+            summary: List all scripts
+            security:
+                - BearerAuth: []
             responses:
                 '200':
-                    description: A list of users
+                    description: A list of scripts
                     content:
                         application/json:
                             schema:
@@ -37,37 +39,144 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/User'
+                                            $ref: '#/components/schemas/Script'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
-        post:
+    /api/v1/scripts/{name}:
+        get:
             tags:
-                - Users
-            summary: Create a new user
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UserInput'
+                - Scripts
+            summary: Get script by name
+            security:
+                - BearerAuth: []
+            parameters:
+                - in: path
+                  name: name
+                  required: true
+                  schema:
+                      type: string
+                  description: Script name
             responses:
-                '201':
-                    description: User created
+                '200':
+                    description: Script found
                     content:
                         application/json:
                             schema:
                                 type: object
                                 properties:
                                     data:
-                                        $ref: '#/components/schemas/User'
+                                        $ref: '#/components/schemas/Script'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
-                '409':
-                    description: Email already exists
+                '404':
+                    description: Script not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks:
+        get:
+            tags:
+                - Tasks
+            summary: List all tasks
+            security:
+                - BearerAuth: []
+            responses:
+                '200':
+                    description: A list of tasks
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                            examples:
+                                mixedValidTasks:
+                                    summary: Valid mix of task types
+                                    value:
+                                        data:
+                                            - _id: 67f0a1b2c3d4e5f607182930
+                                              script: sum
+                                              inputArgs:
+                                                  a: 10
+                                                  b: 25
+                                              type: IMMEDIATE
+                                              enabled: true
+                                              createdAt: '2026-04-01T09:00:00.000Z'
+                                              updatedAt: '2026-04-01T09:00:00.000Z'
+                                            - _id: 67f0a1b2c3d4e5f607182931
+                                              script: sum
+                                              inputArgs:
+                                                  a: 3
+                                                  b: 7
+                                              type: RECURRING
+                                              enabled: true
+                                              startDate: '2026-04-02T10:00:00.000Z'
+                                              endDate: '2026-04-09T10:00:00.000Z'
+                                              interval: 60000
+                                              createdAt: '2026-04-01T09:01:00.000Z'
+                                              updatedAt: '2026-04-01T09:01:00.000Z'
+                                            - _id: 67f0a1b2c3d4e5f607182932
+                                              script: sum
+                                              inputArgs:
+                                                  a: 100
+                                                  b: 250
+                                              type: PROGRAMMED
+                                              enabled: true
+                                              runDates:
+                                                  - '2026-04-02T10:01:00.000Z'
+                                                  - '2026-04-02T10:05:00.000Z'
+                                                  - '2026-04-02T10:10:00.000Z'
+                                              createdAt: '2026-04-01T09:02:00.000Z'
+                                              updatedAt: '2026-04-01T09:02:00.000Z'
+                                        message: OK
+                                        success: true
+        post:
+            tags:
+                - Tasks
+            summary: Create a new task
+            security:
+                - BearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskInput'
+                        examples:
+                            immediateSum:
+                                $ref: '#/components/examples/TaskInputImmediateSum'
+                            recurringSum:
+                                $ref: '#/components/examples/TaskInputRecurringSum'
+                            programmedSum:
+                                $ref: '#/components/examples/TaskInputProgrammedSum'
+            responses:
+                '201':
+                    description: Task created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '400':
+                    description: Invalid input
                     content:
                         application/json:
                             schema:
@@ -78,89 +187,102 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/v1/users/{id}:
+    /api/v1/tasks/{id}:
         get:
             tags:
-                - Users
-            summary: Get user by ID
+                - Tasks
+            summary: Get task by ID
+            security:
+                - BearerAuth: []
             parameters:
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
-                  description: User ID (Mongo ObjectId)
+                  description: Task ID (Mongo ObjectId)
             responses:
                 '200':
-                    description: User found
+                    description: Task found
                     content:
                         application/json:
                             schema:
                                 type: object
                                 properties:
                                     data:
-                                        $ref: '#/components/schemas/User'
+                                        $ref: '#/components/schemas/Task'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
                 '404':
-                    description: User not found
+                    description: Task not found
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
         put:
             tags:
-                - Users
-            summary: Update user by ID
+                - Tasks
+            summary: Update task by ID
+            security:
+                - BearerAuth: []
             parameters:
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
-                  description: User ID (Mongo ObjectId)
+                  description: Task ID (Mongo ObjectId)
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserInput'
+                            $ref: '#/components/schemas/TaskInput'
+                        examples:
+                            immediateSum:
+                                $ref: '#/components/examples/TaskInputImmediateSum'
+                            recurringSum:
+                                $ref: '#/components/examples/TaskInputRecurringSum'
+                            programmedSum:
+                                $ref: '#/components/examples/TaskInputProgrammedSum'
             responses:
                 '200':
-                    description: User updated
+                    description: Task updated
                     content:
                         application/json:
                             schema:
                                 type: object
                                 properties:
                                     data:
-                                        $ref: '#/components/schemas/User'
+                                        $ref: '#/components/schemas/Task'
                                     message:
                                         type: string
                                     success:
                                         type: boolean
                 '404':
-                    description: User not found
+                    description: Task not found
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
         delete:
             tags:
-                - Users
-            summary: Delete user by ID
+                - Tasks
+            summary: Delete task by ID
+            security:
+                - BearerAuth: []
             parameters:
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
-                  description: User ID (Mongo ObjectId)
+                  description: Task ID (Mongo ObjectId)
             responses:
                 '200':
-                    description: User deleted
+                    description: Task deleted
                     content:
                         application/json:
                             schema:
@@ -173,49 +295,296 @@ paths:
                                     success:
                                         type: boolean
                 '404':
-                    description: User not found
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}/enable:
+        post:
+            tags:
+                - Tasks
+            summary: Enable task by ID
+            security:
+                - BearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: Task enabled
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}/disable:
+        post:
+            tags:
+                - Tasks
+            summary: Disable task by ID
+            security:
+                - BearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: Task disabled
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        $ref: '#/components/schemas/Task'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/v1/tasks/{id}/executions:
+        get:
+            tags:
+                - Tasks
+            summary: Get task executions by task ID
+            security:
+                - BearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Task ID (Mongo ObjectId)
+            responses:
+                '200':
+                    description: List of task executions
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/TaskExecution'
+                                    message:
+                                        type: string
+                                    success:
+                                        type: boolean
+                '404':
+                    description: Task not found
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Error'
 
 components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+            description: JWT token for microservice authentication.
+    examples:
+        TaskInputImmediateSum:
+            summary: IMMEDIATE task using the sum script
+            value:
+                script: sum
+                inputArgs:
+                    a: 10
+                    b: 25
+                type: IMMEDIATE
+                enabled: true
+        TaskInputRecurringSum:
+            summary: RECURRING task using the sum script
+            value:
+                script: sum
+                inputArgs:
+                    a: 3
+                    b: 7
+                type: RECURRING
+                enabled: true
+                startDate: '2026-04-02T10:00:00.000Z'
+                endDate: '2026-04-09T10:00:00.000Z'
+                interval: 60000
+        TaskInputProgrammedSum:
+            summary: PROGRAMMED task using the sum script
+            value:
+                script: sum
+                inputArgs:
+                    a: 100
+                    b: 250
+                type: PROGRAMMED
+                enabled: true
+                runDates:
+                    - '2026-04-02T10:01:00.000Z'
+                    - '2026-04-02T10:05:00.000Z'
+                    - '2026-04-02T10:10:00.000Z'
     schemas:
-        User:
+        Script:
+            type: object
+            required:
+                - name
+                - description
+                - inputSchema
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                inputSchema:
+                    type: object
+        Task:
+            oneOf:
+                - $ref: '#/components/schemas/TaskImmediate'
+                - $ref: '#/components/schemas/TaskRecurring'
+                - $ref: '#/components/schemas/TaskProgrammed'
+            discriminator:
+                propertyName: type
+                mapping:
+                    IMMEDIATE: '#/components/schemas/TaskImmediate'
+                    RECURRING: '#/components/schemas/TaskRecurring'
+                    PROGRAMMED: '#/components/schemas/TaskProgrammed'
+        TaskBase:
             type: object
             required:
                 - _id
-                - name
-                - email
+                - script
+                - type
+                - enabled
             properties:
                 _id:
                     type: string
                     description: MongoDB ObjectId
-                name:
+                script:
                     type: string
-                email:
+                    description: Reference to Script (name)
+                inputArgs:
+                    type: object
+                    description: Input arguments for the script
+                type:
                     type: string
-                password:
-                    type: string
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
+                    description: Type of task
+                enabled:
+                    type: boolean
+                    description: Whether task is enabled
                 createdAt:
                     type: string
                     format: date-time
                 updatedAt:
                     type: string
                     format: date-time
-        UserInput:
+        TaskImmediate:
+            allOf:
+                - $ref: '#/components/schemas/TaskBase'
+                - type: object
+                  properties:
+                      type:
+                          type: string
+                          enum: [IMMEDIATE]
+        TaskRecurring:
+            allOf:
+                - $ref: '#/components/schemas/TaskBase'
+                - type: object
+                  required:
+                      - startDate
+                      - interval
+                  properties:
+                      type:
+                          type: string
+                          enum: [RECURRING]
+                      startDate:
+                          type: string
+                          format: date-time
+                          description: When the recurring task starts (can be past or future)
+                      endDate:
+                          type: string
+                          format: date-time
+                          description: When the recurring task ends (optional)
+                      interval:
+                          type: number
+                          description: Interval in milliseconds for recurring tasks
+        TaskProgrammed:
+            allOf:
+                - $ref: '#/components/schemas/TaskBase'
+                - type: object
+                  required:
+                      - runDates
+                  properties:
+                      type:
+                          type: string
+                          enum: [PROGRAMMED]
+                      runDates:
+                          type: array
+                          items:
+                              type: string
+                              format: date-time
+                          description: Specific dates to run for PROGRAMMED tasks
+        TaskInput:
             type: object
             required:
-                - name
-                - email
-                - password
+                - script
+                - type
+            description: Input payload to create or update a task.
             properties:
-                name:
+                script:
                     type: string
-                email:
+                    description: Reference to Script (name)
+                inputArgs:
+                    type: object
+                    description: Input arguments for the script
+                type:
                     type: string
-                password:
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
+                    description: Type of task
+                enabled:
+                    type: boolean
+                    description: Whether task is enabled (default true)
+                startDate:
                     type: string
+                    format: date-time
+                    description: When the task starts (for RECURRING tasks only)
+                endDate:
+                    type: string
+                    format: date-time
+                    description: When the task ends (optional, for RECURRING tasks only)
+                interval:
+                    type: number
+                    description: Interval in milliseconds for recurring tasks (for RECURRING tasks only)
+                runDates:
+                    type: array
+                    items:
+                        type: string
+                        format: date-time
+                    description: Specific dates to run at (for PROGRAMMED tasks only)
         Error:
             type: object
             properties:

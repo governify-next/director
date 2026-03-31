@@ -1,15 +1,19 @@
 import { bootEnv } from '../config/bootConfig.js';
+import { inspect } from 'util';
 
 const LOG_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE'];
 const currentLogLevel = bootEnv.GOV_LOG_LEVEL.toUpperCase();
+
+type LogCapture = (logLine: string) => void;
 
 function shouldLog(level: string) {
     return LOG_LEVELS.indexOf(level) >= LOG_LEVELS.indexOf(currentLogLevel);
 }
 
-class Logger {
+export class Logger {
     private service: string;
     private tag?: string;
+    private capture?: LogCapture;
 
     constructor(service: string) {
         this.service = service;
@@ -17,6 +21,11 @@ class Logger {
 
     setTag(tag: string) {
         this.tag = tag;
+        return this;
+    }
+
+    setCapture(capture: LogCapture) {
+        this.capture = capture;
         return this;
     }
 
@@ -42,6 +51,8 @@ class Logger {
 
     private _log(level: 'info' | 'warn' | 'error' | 'debug', ...messages: unknown[]) {
         const formatted = this._formatLog(level, ...messages);
+        this.capture?.(this._toLogLine(formatted));
+
         switch (level) {
             case 'info':
                 console.info(...formatted);
@@ -66,6 +77,16 @@ class Logger {
         const tag = this.tag ? `: ${this.tag}` : '';
         const prefix = `[${timestamp}] [${service}${tag}] [${level.toUpperCase()}]:`;
         return [prefix, ...messages];
+    }
+
+    private _toLogLine(messages: unknown[]): string {
+        return messages
+            .map((message) =>
+                typeof message === 'string'
+                    ? message
+                    : inspect(message, { depth: 5, colors: false }),
+            )
+            .join(' ');
     }
 }
 
