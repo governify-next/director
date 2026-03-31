@@ -35,43 +35,32 @@ export async function removeRecurringTask(taskId: string) {
     }
 }
 
-export async function scheduleOneTimeTask(task: ITask) {
-    const jobId = `one-time-task-${task._id}`;
+export async function scheduleImmediateTask(task: ITask) {
+    const jobId = `immediate-task-${task._id}`;
 
     await taskQueue.add(
-        'execute-one-time-task',
+        'execute-immediate-task',
         {
             taskId: task._id,
         },
         {
             jobId: jobId,
-            delay: Math.max(0, task.startDate.getTime() - Date.now()),
         },
     );
 
-    logger.debug(`Scheduled one-time task ${task._id}.`);
+    logger.debug(`Scheduled immediate task ${task._id}.`);
 }
 
-export async function removeOneTimeTask(taskId: string) {
-    const jobId = `one-time-task-${taskId}`;
-
-    try {
-        await taskQueue.remove(jobId);
-    } catch (error) {
-        logger.debug(`One-time job for task ${taskId} was not removed.`, error);
-    }
-}
-
-export async function scheduleManyTimesTask(task: ITask) {
+export async function scheduleScheduledTask(task: ITask) {
     for (const runDate of task.runDates!) {
         if (runDate.getTime() < Date.now()) {
             continue;
         }
 
-        const jobId = `many-times-task-${task._id}-${runDate.getTime()}`;
+        const jobId = `scheduled-task-${task._id}-${runDate.getTime()}`;
 
         await taskQueue.add(
-            'execute-many-times-task',
+            'execute-scheduled-task',
             {
                 taskId: task._id,
             },
@@ -81,21 +70,19 @@ export async function scheduleManyTimesTask(task: ITask) {
             },
         );
 
-        logger.debug(
-            `Scheduled many-times task ${task._id} for run date ${runDate.toISOString()}.`,
-        );
+        logger.debug(`Scheduled task ${task._id} for run date ${runDate.toISOString()}.`);
     }
 }
 
-export async function removeManyTimesTask(task: ITask) {
+export async function removeScheduledTask(task: ITask) {
     for (const runDate of task.runDates!) {
-        const jobId = `many-times-task-${task._id}-${runDate.getTime()}`;
+        const jobId = `scheduled-task-${task._id}-${runDate.getTime()}`;
 
         try {
             await taskQueue.remove(jobId);
         } catch (error) {
             logger.debug(
-                `Many-times job for task ${task._id} and run date ${runDate.toISOString()} was not removed.`,
+                `Scheduled job for task ${task._id} and run date ${runDate.toISOString()} was not removed.`,
                 error,
             );
         }
@@ -105,20 +92,18 @@ export async function removeManyTimesTask(task: ITask) {
 export async function scheduleTask(task: ITask) {
     if (task.type === TaskType.RECURRING) {
         await scheduleRecurringTask(task);
-    } else if (task.type === TaskType.ONE_TIME) {
-        await scheduleOneTimeTask(task);
-    } else if (task.type === TaskType.MANY_TIMES) {
-        await scheduleManyTimesTask(task);
+    } else if (task.type === TaskType.IMMEDIATE) {
+        await scheduleImmediateTask(task);
+    } else if (task.type === TaskType.SCHEDULED) {
+        await scheduleScheduledTask(task);
     }
 }
 
 export async function removeTask(task: ITask) {
     if (task.type === TaskType.RECURRING) {
         await removeRecurringTask(task._id.toString());
-    } else if (task.type === TaskType.ONE_TIME) {
-        await removeOneTimeTask(task._id.toString());
-    } else if (task.type === TaskType.MANY_TIMES) {
-        await removeManyTimesTask(task);
+    } else if (task.type === TaskType.SCHEDULED) {
+        await removeScheduledTask(task);
     }
 }
 
@@ -146,25 +131,25 @@ export async function loadRecurringTasks() {
     logger.info(`Finished loading recurring tasks from database.`);
 }
 
-export async function loadManyTimesTasks() {
+export async function loadScheduledTasks() {
     const now = new Date();
 
-    const activeManyTimesTasks = await Task.find({
-        type: TaskType.MANY_TIMES,
+    const activeScheduledTasks = await Task.find({
+        type: TaskType.SCHEDULED,
         enabled: true,
         runDates: { $elemMatch: { $gte: now } },
     });
 
-    logger.info(`Found ${activeManyTimesTasks.length} active many-times tasks.`);
+    logger.info(`Found ${activeScheduledTasks.length} active scheduled tasks.`);
 
-    for (const task of activeManyTimesTasks) {
+    for (const task of activeScheduledTasks) {
         try {
-            logger.debug(`Scheduling many-times task ${task._id} from database.`);
-            await scheduleManyTimesTask(task);
+            logger.debug(`Scheduling task ${task._id} from database.`);
+            await scheduleScheduledTask(task);
         } catch (error) {
-            logger.error(`Failed scheduling many-times task ${task._id} during load.`, error);
+            logger.error(`Failed scheduling task ${task._id} during load.`, error);
         }
     }
 
-    logger.info(`Finished loading many-times tasks from database.`);
+    logger.info(`Finished loading scheduled tasks from database.`);
 }
