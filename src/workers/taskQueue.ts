@@ -58,6 +58,11 @@ export async function runCleanup() {
 }
 
 export async function startQueueCleanup() {
+    if (bootEnv.QUEUE_CLEANUP_INTERVAL <= 0) {
+        logger.info('Queue cleanup is disabled.');
+        return;
+    }
+
     await runCleanup();
 
     const timer = setInterval(runCleanup, bootEnv.QUEUE_CLEANUP_INTERVAL);
