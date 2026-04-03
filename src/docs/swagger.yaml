@@ -13,6 +13,8 @@ tags:
       description: Script catalog and metadata
     - name: Tasks
       description: Task scheduling and execution management
+    - name: Task Executions
+      description: Execution records for tasks
 
 paths:
     # ------------------------------
@@ -363,12 +365,15 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalError'
 
+    # ------------------------------
+    # Task Executions
+    # ------------------------------
     /api/v1/tasks/{id}/executions:
         parameters:
             - $ref: '#/components/parameters/taskId'
         get:
             tags:
-                - Tasks
+                - Task Executions
             summary: Get task executions by task id
             operationId: getTaskExecutions
             security:
