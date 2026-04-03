@@ -65,6 +65,15 @@ export const deleteTask = async (id: string) => {
     return deletedTask;
 };
 
+export const deleteAllTasks = async () => {
+    const tasks = await taskRepository.getTasks();
+    const taskIds = tasks.map((task) => task._id.toString());
+    const deletedTasks = await taskRepository.deleteTasks(taskIds);
+
+    await tasks.map((task) => taskScheduler.removeTask(task));
+    return deletedTasks;
+};
+
 export const enableTask = async (id: string) => {
     const task = await taskRepository.getTaskById(id);
     if (!task) return null;

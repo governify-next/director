@@ -167,6 +167,33 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/InternalError'
+        delete:
+            tags:
+                - Tasks
+            summary: Delete all tasks
+            operationId: deleteAllTasks
+            security:
+                - BearerAuth: []
+            description: Deletes all tasks and cascades deletion to all related task executions.
+            responses:
+                '200':
+                    description: All tasks deleted successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: All tasks deleted
+                                          data:
+                                              $ref: '#/components/schemas/DeleteAllTasksResult'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
 
     /api/v1/tasks/{id}:
         parameters:
@@ -774,6 +801,22 @@ components:
                     type: object
                     nullable: true
                     additionalProperties: true
+
+        DeleteAllTasksResult:
+            type: object
+            description: Number of deleted tasks and related task execution records.
+            properties:
+                deletedTasksCount:
+                    type: integer
+                    minimum: 0
+                    example: 12
+                deletedExecutionsCount:
+                    type: integer
+                    minimum: 0
+                    example: 48
+            required:
+                - deletedTasksCount
+                - deletedExecutionsCount
 
         TaskInput:
             type: object

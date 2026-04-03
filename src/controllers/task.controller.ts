@@ -51,6 +51,15 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+export const deleteAllTasks = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.deleteAllTasks();
+        return sendSuccess(res, { data: result, message: 'All tasks deleted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const enableTask = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const task = await taskService.enableTask(req.params.id);

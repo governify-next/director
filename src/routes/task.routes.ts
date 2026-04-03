@@ -8,6 +8,7 @@ export const taskRoutes = Router();
 taskRoutes.get('/', taskController.getTasks);
 taskRoutes.get('/:id', validateMongoId, taskController.getTaskById);
 taskRoutes.post('/', validateTask, taskController.createTask);
+taskRoutes.delete('/', taskController.deleteAllTasks);
 taskRoutes.put('/:id', validateMongoId, validateTask, taskController.updateTask);
 taskRoutes.delete('/:id', validateMongoId, taskController.deleteTask);
 

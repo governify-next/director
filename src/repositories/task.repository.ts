@@ -23,6 +23,18 @@ export const deleteTask = async (id: string) => {
     return await Task.findByIdAndDelete(id);
 };
 
+export const deleteTasks = async (taskIds: string[]) => {
+    const executionDeleteResult = await TaskExecution.deleteMany({
+        taskId: { $in: taskIds },
+    });
+    const taskDeleteResult = await Task.deleteMany({ _id: { $in: taskIds } });
+
+    return {
+        deletedTasksCount: taskDeleteResult.deletedCount ?? 0,
+        deletedExecutionsCount: executionDeleteResult.deletedCount ?? 0,
+    };
+};
+
 export const getTaskExecutions = async (id: string) => {
     return await TaskExecution.find({ taskId: id }).sort({ startDate: -1 });
 };
