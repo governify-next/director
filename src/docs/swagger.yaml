@@ -1,8 +1,9 @@
 openapi: 3.0.0
 info:
-    title: Express API Boilerplatesss
+    title: Director API
     version: 1.0.0
-    description: A simple Express API with TypeScript
+    description: |
+        REST API for managing tasks within Director API.
 servers:
     - url: /
 
