@@ -20,8 +20,8 @@ const swaggerDocument = YAML.load(swaggerPath);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(healthRoutes);
-app.use('/api/v1/scripts', isAuthenticated, scriptRoutes);
-app.use('/api/v1/tasks', isAuthenticated, taskRoutes);
+app.use('/api/v1', isAuthenticated, scriptRoutes);
+app.use('/api/v1', isAuthenticated, taskRoutes);
 app.use(errorHandler);
 
 export default app;

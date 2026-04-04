@@ -9,7 +9,6 @@ import { startQueueCleanup } from './workers/taskQueue.js';
 
 const logger = getLogger().setTag('server.ts');
 const PORT = bootEnv.PORT;
-const MONGO_URI = bootEnv.MONGO_URI;
 
 connectMongo()
     .then(() => {
