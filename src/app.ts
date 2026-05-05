@@ -4,7 +4,7 @@ import { scriptRoutes } from './routes/script.routes.js';
 import { taskRoutes } from './routes/task.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-import { isAuthenticated } from './middlewares/authentication.js';
+import { checkServiceAuthentication } from './middlewares/service.authenticator.js';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
@@ -20,8 +20,8 @@ const swaggerDocument = YAML.load(swaggerPath);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(healthRoutes);
-app.use('/api/v1', isAuthenticated, scriptRoutes);
-app.use('/api/v1', isAuthenticated, taskRoutes);
+app.use('/api/v1', checkServiceAuthentication, scriptRoutes);
+app.use('/api/v1', checkServiceAuthentication, taskRoutes);
 app.use(errorHandler);
 
 export default app;

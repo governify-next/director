@@ -4,7 +4,10 @@ import { type Request, type Response, type NextFunction } from 'express';
 import { getLogger } from '../utils/logger.js';
 import { bootEnv } from '../config/bootConfig.js';
 
-const logger = getLogger().setTag('authentication.ts');
+const logger = getLogger().setTag('service.authenticator.ts');
+
+const SERVICE_AUTHENTICATION_ENABLED = bootEnv.SERVICE_AUTHENTICATION_ENABLED;
+const JWT_SECRET = bootEnv.JWT_SECRET;
 
 declare module 'express' {
     interface Request {
@@ -16,9 +19,9 @@ export interface JwtPayload {
     service: string;
 }
 
-export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-    if (bootEnv.NODE_ENV === 'development') {
-        logger.info(
+export const checkServiceAuthentication = (req: Request, res: Response, next: NextFunction) => {
+    if (!SERVICE_AUTHENTICATION_ENABLED) {
+        logger.debug(
             'Skipping authentication in development environment!! DO NOT USE IN PRODUCTION!!',
         );
         return next();
@@ -30,7 +33,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 
     const token = authHeader.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, bootEnv.JWT_SECRET) as JwtPayload;
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
         req.auth = decoded; // Attach JwtPayload to the Request for downstream use
         next();
