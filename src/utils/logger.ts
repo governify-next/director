@@ -1,15 +1,21 @@
 import { bootEnv } from '../config/bootConfig.js';
+import { inspect } from 'util';
+
+type LoggerLevel = 'info' | 'warn' | 'error' | 'debug';
 
 const LOG_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE'];
 const currentLogLevel = bootEnv.GOV_LOG_LEVEL.toUpperCase();
+
+type LogCapture = (logLine: string) => void;
 
 function shouldLog(level: string) {
     return LOG_LEVELS.indexOf(level) >= LOG_LEVELS.indexOf(currentLogLevel);
 }
 
-class Logger {
+export class Logger {
     private service: string;
     private tag?: string;
+    private capture?: LogCapture;
 
     constructor(service: string) {
         this.service = service;
@@ -17,6 +23,11 @@ class Logger {
 
     setTag(tag: string) {
         this.tag = tag;
+        return this;
+    }
+
+    setCapture(capture: LogCapture) {
+        this.capture = capture;
         return this;
     }
 
@@ -40,8 +51,10 @@ class Logger {
         if (shouldLog('DEBUG')) this._log('debug', ...messages);
     }
 
-    private _log(level: 'info' | 'warn' | 'error' | 'debug', ...messages: unknown[]) {
+    private _log(level: LoggerLevel, ...messages: unknown[]) {
         const formatted = this._formatLog(level, ...messages);
+        this.capture?.(this._toLogLine(formatted));
+
         switch (level) {
             case 'info':
                 console.info(...formatted);
@@ -60,13 +73,50 @@ class Logger {
         }
     }
 
-    private _formatLog(level: string, ...messages: unknown[]): unknown[] {
+    private _formatLog(level: LoggerLevel, ...messages: unknown[]): unknown[] {
         const timestamp = new Date().toISOString();
         const service = this.service ? `${this.service}` : '';
         const tag = this.tag ? `: ${this.tag}` : '';
-        const prefix = `[${timestamp}] [${service}${tag}] [${level.toUpperCase()}]:`;
+        const levelLabel = level.toUpperCase();
+        const coloredLevel = colorize(levelLabel, LEVEL_COLORS[level]);
+        const prefix = `[${timestamp}] [${service}${tag}] [${coloredLevel}]:`;
         return [prefix, ...messages];
     }
+
+    private _toLogLine(messages: unknown[]): string {
+        return messages
+            .map((message) =>
+                typeof message === 'string'
+                    ? message
+                    : inspect(message, { depth: 5, colors: false }),
+            )
+            .join(' ');
+    }
+}
+
+// Simple color codes for terminal output
+const ANSI_COLORS = {
+    RESET: '\x1b[0m',
+    GRAY: '\x1b[90m',
+    BLUE: '\x1b[34m',
+    YELLOW: '\x1b[33m',
+    RED: '\x1b[31m',
+};
+
+const LEVEL_COLORS: Record<LoggerLevel, string> = {
+    info: ANSI_COLORS.BLUE,
+    warn: ANSI_COLORS.YELLOW,
+    error: ANSI_COLORS.RED,
+    debug: ANSI_COLORS.GRAY,
+};
+
+function isColorEnabled() {
+    return process.stdout.isTTY && process.env.NO_COLOR === undefined;
+}
+
+function colorize(text: string, color: string) {
+    if (!isColorEnabled()) return text;
+    return `${color}${text}${ANSI_COLORS.RESET}`;
 }
 
 // Factory to get a logger for a specific service

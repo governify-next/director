@@ -1,16 +1,32 @@
 openapi: 3.0.0
 info:
-    title: Express API Boilerplatesss
+    title: Director API
     version: 1.0.0
-    description: A simple Express API with TypeScript
+    description: |
+        REST API for managing tasks within Director API.
 servers:
     - url: /
+
+tags:
+    - name: Health
+      description: Server health check
+    - name: Scripts
+      description: Script catalog and metadata
+    - name: Tasks
+      description: Task scheduling and execution management
+    - name: Task Executions
+      description: Execution records for tasks
+
 paths:
+    # ------------------------------
+    # Health
+    # ------------------------------
     /health:
         get:
             tags:
                 - Health
             summary: Health check
+            operationId: getHealth
             responses:
                 '200':
                     description: OK
@@ -21,205 +37,832 @@ paths:
                                 properties:
                                     status:
                                         type: string
-    /api/v1/users:
+                                        example: ok
+                                    message:
+                                        type: string
+                                        example: Health check passed
+
+    # ------------------------------
+    # Scripts
+    # ------------------------------
+    /api/v1/scripts:
         get:
             tags:
-                - Users
-            summary: List all users
+                - Scripts
+            summary: List all scripts
+            operationId: getScripts
+            security:
+                - BearerAuth: []
+            description: Retrieves all available script modules registered in the service.
             responses:
                 '200':
-                    description: A list of users
+                    description: Scripts retrieved successfully.
                     content:
                         application/json:
                             schema:
-                                type: object
-                                properties:
-                                    data:
-                                        type: array
-                                        items:
-                                            $ref: '#/components/schemas/User'
-                                    message:
-                                        type: string
-                                    success:
-                                        type: boolean
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: array
+                                              items:
+                                                  $ref: '#/components/schemas/Script'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/scripts/{name}:
+        parameters:
+            - $ref: '#/components/parameters/scriptName'
+        get:
+            tags:
+                - Scripts
+            summary: Get script by name
+            operationId: getScriptByName
+            security:
+                - BearerAuth: []
+            description: Retrieves one script module by its unique name.
+            responses:
+                '200':
+                    description: Script retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/Script'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    # ------------------------------
+    # Tasks
+    # ------------------------------
+    /api/v1/tasks:
+        get:
+            tags:
+                - Tasks
+            summary: List all tasks
+            operationId: getTasks
+            security:
+                - BearerAuth: []
+            description: Retrieves all task entities, including all supported task types.
+            responses:
+                '200':
+                    description: Tasks retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: array
+                                              items:
+                                                  $ref: '#/components/schemas/Task'
+                            examples:
+                                mixedValidTasks:
+                                    $ref: '#/components/examples/MixedValidTasksResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
         post:
             tags:
-                - Users
-            summary: Create a new user
+                - Tasks
+            summary: Create a new task
+            operationId: createTask
+            security:
+                - BearerAuth: []
+            description: Creates and schedules a task according to its type.
             requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UserInput'
+                $ref: '#/components/requestBodies/TaskInputBody'
             responses:
                 '201':
-                    description: User created
+                    description: Task created successfully.
                     content:
                         application/json:
                             schema:
-                                type: object
-                                properties:
-                                    data:
-                                        $ref: '#/components/schemas/User'
-                                    message:
-                                        type: string
-                                    success:
-                                        type: boolean
-                '409':
-                    description: Email already exists
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Error'
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task created
+                                          httpStatus:
+                                              type: integer
+                                              example: 201
+                                          data:
+                                              $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Error'
-    /api/v1/users/{id}:
-        get:
-            tags:
-                - Users
-            summary: Get user by ID
-            parameters:
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                  description: User ID (Mongo ObjectId)
-            responses:
-                '200':
-                    description: User found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    data:
-                                        $ref: '#/components/schemas/User'
-                                    message:
-                                        type: string
-                                    success:
-                                        type: boolean
-                '404':
-                    description: User not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Error'
-        put:
-            tags:
-                - Users
-            summary: Update user by ID
-            parameters:
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                  description: User ID (Mongo ObjectId)
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UserInput'
-            responses:
-                '200':
-                    description: User updated
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    data:
-                                        $ref: '#/components/schemas/User'
-                                    message:
-                                        type: string
-                                    success:
-                                        type: boolean
-                '404':
-                    description: User not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Error'
+                    $ref: '#/components/responses/InternalError'
         delete:
             tags:
-                - Users
-            summary: Delete user by ID
-            parameters:
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                  description: User ID (Mongo ObjectId)
+                - Tasks
+            summary: Delete all tasks
+            operationId: deleteAllTasks
+            security:
+                - BearerAuth: []
+            description: Deletes all tasks and cascades deletion to all related task executions.
             responses:
                 '200':
-                    description: User deleted
+                    description: All tasks deleted successfully.
                     content:
                         application/json:
                             schema:
-                                type: object
-                                properties:
-                                    data:
-                                        type: 'null'
-                                    message:
-                                        type: string
-                                    success:
-                                        type: boolean
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: All tasks deleted
+                                          data:
+                                              $ref: '#/components/schemas/DeleteAllTasksResult'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/{id}:
+        parameters:
+            - $ref: '#/components/parameters/taskId'
+        get:
+            tags:
+                - Tasks
+            summary: Get task by id
+            operationId: getTaskById
+            security:
+                - BearerAuth: []
+            description: Retrieves one task by its Mongo identifier.
+            responses:
+                '200':
+                    description: Task retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
-                    description: User not found
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+        put:
+            tags:
+                - Tasks
+            summary: Update task by id
+            operationId: updateTask
+            security:
+                - BearerAuth: []
+            description: Updates an existing task and re-schedules it if needed.
+            requestBody:
+                $ref: '#/components/requestBodies/TaskInputBody'
+            responses:
+                '200':
+                    description: Task updated successfully.
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Error'
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task updated
+                                          data:
+                                              $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+        delete:
+            tags:
+                - Tasks
+            summary: Delete task by id
+            operationId: deleteTask
+            security:
+                - BearerAuth: []
+            description: Deletes a task and its related execution records.
+            responses:
+                '200':
+                    description: Task deleted successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task deleted
+                                          data:
+                                              type: object
+                                              nullable: true
+                                              example: null
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/{id}/enable:
+        parameters:
+            - $ref: '#/components/parameters/taskId'
+        post:
+            tags:
+                - Tasks
+            summary: Enable task by id
+            operationId: enableTask
+            security:
+                - BearerAuth: []
+            description: Enables and schedules a task.
+            responses:
+                '200':
+                    description: Task enabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task enabled
+                                          data:
+                                              $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/{id}/disable:
+        parameters:
+            - $ref: '#/components/parameters/taskId'
+        post:
+            tags:
+                - Tasks
+            summary: Disable task by id
+            operationId: disableTask
+            security:
+                - BearerAuth: []
+            description: Disables and unschedules a task.
+            responses:
+                '200':
+                    description: Task disabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task disabled
+                                          data:
+                                              $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    # ------------------------------
+    # Task Executions
+    # ------------------------------
+    /api/v1/tasks/{id}/executions:
+        parameters:
+            - $ref: '#/components/parameters/taskId'
+        get:
+            tags:
+                - Task Executions
+            summary: Get task executions by task id
+            operationId: getTaskExecutions
+            security:
+                - BearerAuth: []
+            description: Retrieves all execution records associated with a task.
+            responses:
+                '200':
+                    description: Task executions retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: array
+                                              items:
+                                                  $ref: '#/components/schemas/TaskExecution'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
 
 components:
+    # Reusable parameters
+    parameters:
+        scriptName:
+            name: name
+            in: path
+            required: true
+            description: Script name
+            schema:
+                type: string
+                example: sum
+        taskId:
+            name: id
+            in: path
+            required: true
+            description: Task ID (Mongo ObjectId)
+            schema:
+                type: string
+                example: 67f0a1b2c3d4e5f607182930
+
+    # Reusable request bodies
+    requestBodies:
+        TaskInputBody:
+            required: true
+            description: Request payload to create or update a task.
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/TaskInput'
+                    examples:
+                        immediateSum:
+                            $ref: '#/components/examples/TaskInputImmediateSum'
+                        recurringSum:
+                            $ref: '#/components/examples/TaskInputRecurringSum'
+                        programmedSum:
+                            $ref: '#/components/examples/TaskInputProgrammedSum'
+
+    # Reusable responses
+    responses:
+        ValidationError:
+            description: Validation error in the submitted data
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                    example:
+                        success: false
+                        message: Validation failed
+                        httpStatus: 400
+                        appCode: VALIDATION_ERROR
+                        data: null
+                        error:
+                            message: Validation failed
+                            details:
+                                - msg: type must be one of IMMEDIATE, RECURRING, PROGRAMMED
+                                  path: type
+        NotFound:
+            description: Requested resource does not exist
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                    example:
+                        success: false
+                        message: Resource not found
+                        httpStatus: 404
+                        appCode: NOT_FOUND
+                        data: null
+                        error:
+                            message: Resource not found
+                            details: null
+        Unauthorized:
+            description: Missing or invalid authentication token
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                    example:
+                        success: false
+                        message: Authorization header missing or malformed
+                        httpStatus: 401
+                        appCode: UNAUTHORIZED
+                        data: null
+                        error:
+                            message: Authorization header missing or malformed
+                            details: null
+        InternalError:
+            description: Internal server error
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                    example:
+                        success: false
+                        message: Internal server error
+                        httpStatus: 500
+                        appCode: UNKNOWN_ERROR
+                        data: null
+                        error:
+                            message: Internal server error
+                            details: null
+
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+            description: JWT token for microservice authentication.
+
+    examples:
+        MixedValidTasksResponse:
+            summary: Valid mix of task types
+            value:
+                success: true
+                message: OK
+                httpStatus: 200
+                appCode: SUCCESS
+                data:
+                    - _id: 67f0a1b2c3d4e5f607182930
+                      script: sum
+                      inputArgs:
+                          a: 10
+                          b: 25
+                      type: IMMEDIATE
+                      enabled: true
+                      createdAt: '2026-04-01T09:00:00.000Z'
+                      updatedAt: '2026-04-01T09:00:00.000Z'
+                    - _id: 67f0a1b2c3d4e5f607182931
+                      script: sum
+                      inputArgs:
+                          a: 3
+                          b: 7
+                      type: RECURRING
+                      enabled: true
+                      startDate: '2026-04-02T10:00:00.000Z'
+                      endDate: '2026-04-09T10:00:00.000Z'
+                      interval: 60000
+                      createdAt: '2026-04-01T09:01:00.000Z'
+                      updatedAt: '2026-04-01T09:01:00.000Z'
+                    - _id: 67f0a1b2c3d4e5f607182932
+                      script: sum
+                      inputArgs:
+                          a: 100
+                          b: 250
+                      type: PROGRAMMED
+                      enabled: true
+                      runDates:
+                          - '2026-04-02T10:01:00.000Z'
+                          - '2026-04-02T10:05:00.000Z'
+                          - '2026-04-02T10:10:00.000Z'
+                      createdAt: '2026-04-01T09:02:00.000Z'
+                      updatedAt: '2026-04-01T09:02:00.000Z'
+                error: null
+        TaskInputImmediateSum:
+            summary: IMMEDIATE task using the sum script
+            value:
+                script: sum
+                inputArgs:
+                    a: 10
+                    b: 25
+                type: IMMEDIATE
+                enabled: true
+        TaskInputRecurringSum:
+            summary: RECURRING task using the sum script
+            value:
+                script: sum
+                inputArgs:
+                    a: 3
+                    b: 7
+                type: RECURRING
+                enabled: true
+                startDate: '2026-04-02T10:00:00.000Z'
+                endDate: '2026-04-09T10:00:00.000Z'
+                interval: 60000
+        TaskInputProgrammedSum:
+            summary: PROGRAMMED task using the sum script
+            value:
+                script: sum
+                inputArgs:
+                    a: 100
+                    b: 250
+                type: PROGRAMMED
+                enabled: true
+                runDates:
+                    - '2026-04-02T10:01:00.000Z'
+                    - '2026-04-02T10:05:00.000Z'
+                    - '2026-04-02T10:10:00.000Z'
+
     schemas:
-        User:
+        # Standard response wrappers
+        SuccessResponse:
+            type: object
+            description: Standard wrapper for all successful API responses
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: OK
+                httpStatus:
+                    type: integer
+                    example: 200
+                appCode:
+                    type: string
+                    example: SUCCESS
+                data:
+                    type: object
+                    nullable: true
+                    example: null
+                error:
+                    type: object
+                    nullable: true
+                    example: null
+            required:
+                - success
+                - message
+                - httpStatus
+                - appCode
+                - data
+                - error
+
+        ErrorResponse:
+            type: object
+            description: Standard wrapper for all error API responses
+            properties:
+                success:
+                    type: boolean
+                    example: false
+                message:
+                    type: string
+                    example: Validation failed
+                httpStatus:
+                    type: integer
+                    example: 400
+                appCode:
+                    type: string
+                    example: VALIDATION_ERROR
+                data:
+                    type: object
+                    nullable: true
+                    example: null
+                error:
+                    type: object
+                    properties:
+                        message:
+                            type: string
+                            example: Validation failed
+                        details:
+                            type: object
+                            nullable: true
+                            description: Additional error details
+                    required:
+                        - message
+            required:
+                - success
+                - message
+                - httpStatus
+                - appCode
+                - data
+                - error
+
+        # Domain schemas
+        Script:
+            type: object
+            required:
+                - name
+                - description
+                - inputSchema
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                inputSchema:
+                    type: object
+
+        Task:
+            oneOf:
+                - $ref: '#/components/schemas/TaskImmediate'
+                - $ref: '#/components/schemas/TaskRecurring'
+                - $ref: '#/components/schemas/TaskProgrammed'
+            discriminator:
+                propertyName: type
+                mapping:
+                    IMMEDIATE: '#/components/schemas/TaskImmediate'
+                    RECURRING: '#/components/schemas/TaskRecurring'
+                    PROGRAMMED: '#/components/schemas/TaskProgrammed'
+
+        TaskBase:
             type: object
             required:
                 - _id
-                - name
-                - email
+                - script
+                - type
+                - enabled
             properties:
                 _id:
                     type: string
                     description: MongoDB ObjectId
-                name:
+                script:
                     type: string
-                email:
+                    description: Reference to Script (name)
+                inputArgs:
+                    type: object
+                    description: Input arguments for the script
+                type:
                     type: string
-                password:
-                    type: string
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
+                    description: Type of task
+                enabled:
+                    type: boolean
+                    description: Whether task is enabled
                 createdAt:
                     type: string
                     format: date-time
                 updatedAt:
                     type: string
                     format: date-time
-        UserInput:
+
+        TaskImmediate:
+            allOf:
+                - $ref: '#/components/schemas/TaskBase'
+                - type: object
+                  properties:
+                      type:
+                          type: string
+                          enum: [IMMEDIATE]
+
+        TaskRecurring:
+            allOf:
+                - $ref: '#/components/schemas/TaskBase'
+                - type: object
+                  required:
+                      - startDate
+                      - interval
+                  properties:
+                      type:
+                          type: string
+                          enum: [RECURRING]
+                      startDate:
+                          type: string
+                          format: date-time
+                          description: When the recurring task starts (can be past or future)
+                      endDate:
+                          type: string
+                          format: date-time
+                          description: When the recurring task ends (optional)
+                      interval:
+                          type: number
+                          description: Interval in milliseconds for recurring tasks
+
+        TaskProgrammed:
+            allOf:
+                - $ref: '#/components/schemas/TaskBase'
+                - type: object
+                  required:
+                      - runDates
+                  properties:
+                      type:
+                          type: string
+                          enum: [PROGRAMMED]
+                      runDates:
+                          type: array
+                          items:
+                              type: string
+                              format: date-time
+                          description: Specific dates to run for PROGRAMMED tasks
+
+        TaskExecution:
             type: object
             required:
-                - name
-                - email
-                - password
+                - _id
+                - taskId
+                - startDate
+                - status
             properties:
-                name:
+                _id:
                     type: string
-                email:
+                    description: MongoDB ObjectId
+                taskId:
                     type: string
-                password:
+                    description: Task reference ID
+                startDate:
                     type: string
-        Error:
-            type: object
-            properties:
+                    format: date-time
+                finishDate:
+                    type: string
+                    format: date-time
+                    nullable: true
+                status:
+                    type: string
+                    enum: [RUNNING, SUCCEEDED, FAILED]
+                result:
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                log:
+                    type: array
+                    nullable: true
+                    items:
+                        type: string
                 error:
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+
+        DeleteAllTasksResult:
+            type: object
+            description: Number of deleted tasks and related task execution records.
+            properties:
+                deletedTasksCount:
+                    type: integer
+                    minimum: 0
+                    example: 12
+                deletedExecutionsCount:
+                    type: integer
+                    minimum: 0
+                    example: 48
+            required:
+                - deletedTasksCount
+                - deletedExecutionsCount
+
+        TaskInput:
+            type: object
+            required:
+                - script
+                - type
+            description: Input payload to create or update a task.
+            properties:
+                script:
                     type: string
-                message:
+                    description: Reference to Script (name)
+                inputArgs:
+                    type: object
+                    description: Input arguments for the script
+                type:
                     type: string
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
+                    description: Type of task
+                enabled:
+                    type: boolean
+                    description: Whether task is enabled (default true)
+                startDate:
+                    type: string
+                    format: date-time
+                    description: When the task starts (for RECURRING tasks only)
+                endDate:
+                    type: string
+                    format: date-time
+                    description: When the task ends (optional, for RECURRING tasks only)
+                interval:
+                    type: number
+                    description: Interval in milliseconds for recurring tasks (for RECURRING tasks only)
+                runDates:
+                    type: array
+                    items:
+                        type: string
+                        format: date-time
+                    description: Specific dates to run at (for PROGRAMMED tasks only)
+
+        # Kept for backward compatibility with previous references
+        Error:
+            allOf:
+                - $ref: '#/components/schemas/ErrorResponse'

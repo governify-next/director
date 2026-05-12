@@ -35,14 +35,18 @@
     },
     "homepage": "https://github.com/governify-next/base#readme",
     "dependencies": {
+        "@types/jsonwebtoken": "^9.0.10",
+        "bullmq": "^5.71.0",
         "dotenv": "^17.2.3",
         "express": "^5.2.1",
         "express-validator": "^7.3.1",
         "helmet": "^8.1.0",
+        "jsonwebtoken": "^9.0.3",
         "mongoose": "^9.0.2",
         "swagger-jsdoc": "^6.2.8",
         "swagger-ui-express": "^5.0.1",
-        "yamljs": "^0.3.0"
+        "yamljs": "^0.3.0",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@commitlint/cli": "^20.2.0",
