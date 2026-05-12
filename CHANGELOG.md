@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/governify-next/director/compare/v1.0.0...v1.0.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* release action target-branch ([b59088c](https://github.com/governify-next/director/commit/b59088cd9fb0a745829c052f7fff105611f9ff97))
+* release action target-branch ([3af5901](https://github.com/governify-next/director/commit/3af5901240c9eb6a6156242700fa8a3e18e33698))
+
 ## 1.0.0 (2026-05-12)
 
 ### Features
