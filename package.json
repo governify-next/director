@@ -1,5 +1,5 @@
 {
-    "name": "base",
+    "name": "director",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -25,15 +25,15 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/governify-next/base.git"
+        "url": "git+https://github.com/governify-next/director.git"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/governify-next/base/issues"
+        "url": "https://github.com/governify-next/director/issues"
     },
-    "homepage": "https://github.com/governify-next/base#readme",
+    "homepage": "https://github.com/governify-next/director#readme",
     "dependencies": {
         "@types/jsonwebtoken": "^9.0.10",
         "bullmq": "^5.71.0",
