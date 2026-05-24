@@ -70,7 +70,7 @@ export const deleteAllTasks = async () => {
     const taskIds = tasks.map((task) => task._id.toString());
     const deletedTasks = await taskRepository.deleteTasks(taskIds);
 
-    await tasks.map((task) => taskScheduler.removeTask(task));
+    await Promise.all(tasks.map((task) => taskScheduler.removeTask(task)));
     return deletedTasks;
 };
 
