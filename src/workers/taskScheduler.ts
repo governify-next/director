@@ -1,4 +1,5 @@
 import Task, { ITask, TaskType } from '../models/task.model.js';
+import { getAnchoredRunLimit, getNextAnchoredRunDate } from '../utils/recurrence.js';
 import { getLogger } from '../utils/logger.js';
 import { taskQueue } from './taskQueue.js';
 
@@ -6,13 +7,29 @@ const logger = getLogger().setTag('taskScheduler.ts');
 
 export async function scheduleRecurringTask(task: ITask) {
     const jobSchedulerId = `recurring-task-${task._id}`;
+    const nextStartDate = getNextAnchoredRunDate({
+        anchorDate: task.anchorDate,
+        startDate: task.startDate!,
+        interval: task.interval!,
+    });
+    const limit = getAnchoredRunLimit({
+        firstRunDate: nextStartDate,
+        endDate: task.endDate,
+        interval: task.interval!,
+    });
+
+    if (limit === 0) {
+        logger.debug(`Recurring task ${task._id} has no future run dates before endDate`);
+        return;
+    }
 
     await taskQueue.upsertJobScheduler(
         jobSchedulerId,
         {
             every: task.interval,
-            startDate: task.startDate,
+            startDate: nextStartDate,
             endDate: task.endDate,
+            limit,
         },
         {
             name: 'execute-recurring-task',

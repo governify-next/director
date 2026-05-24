@@ -537,6 +537,7 @@ components:
                       enabled: true
                       startDate: '2026-04-02T10:00:00.000Z'
                       endDate: '2026-04-09T10:00:00.000Z'
+                      anchorDate: '2026-04-02T00:00:00.000Z'
                       interval: 60000
                       createdAt: '2026-04-01T09:01:00.000Z'
                       updatedAt: '2026-04-01T09:01:00.000Z'
@@ -574,6 +575,7 @@ components:
                 enabled: true
                 startDate: '2026-04-02T10:00:00.000Z'
                 endDate: '2026-04-09T10:00:00.000Z'
+                anchorDate: '2026-04-02T00:00:00.000Z'
                 interval: 60000
         TaskInputProgrammedSum:
             summary: PROGRAMMED task using the sum script
@@ -748,7 +750,11 @@ components:
                       endDate:
                           type: string
                           format: date-time
-                          description: When the recurring task ends (optional)
+                          description: Inclusive end of the recurring task. If the next anchored run date is after this value, no further execution is scheduled.
+                      anchorDate:
+                          type: string
+                          format: date-time
+                          description: Origin used to align recurring execution windows. Runs occur at anchorDate + n * interval, constrained by startDate and endDate. If omitted, startDate is used as the anchor.
                       interval:
                           type: number
                           description: Interval in milliseconds for recurring tasks
@@ -851,7 +857,11 @@ components:
                 endDate:
                     type: string
                     format: date-time
-                    description: When the task ends (optional, for RECURRING tasks only)
+                    description: Inclusive end of the recurring task. If the next anchored run date is after this value, no further execution is scheduled (optional, for RECURRING tasks only)
+                anchorDate:
+                    type: string
+                    format: date-time
+                    description: Origin used to align recurring execution windows. Runs occur at anchorDate + n * interval, constrained by startDate and endDate. If omitted, startDate is used as the anchor (for RECURRING tasks only)
                 interval:
                     type: number
                     description: Interval in milliseconds for recurring tasks (for RECURRING tasks only)

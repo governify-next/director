@@ -51,6 +51,16 @@ export const validateTask = [
         .not()
         .exists({ checkNull: true })
         .withMessage('endDate is only allowed for recurring tasks'),
+    body('anchorDate')
+        .if(body('type').equals(TaskType.RECURRING))
+        .optional()
+        .isISO8601({ strict: true })
+        .withMessage('anchorDate must be a valid ISO8601 date'),
+    body('anchorDate')
+        .if(body('type').not().equals(TaskType.RECURRING))
+        .not()
+        .exists({ checkNull: true })
+        .withMessage('anchorDate is only allowed for recurring tasks'),
     body('interval')
         .if(body('type').equals(TaskType.RECURRING))
         .exists({ checkNull: true })

@@ -13,6 +13,7 @@ export interface ITask extends Document {
     enabled: boolean;
     startDate?: Date;
     endDate?: Date;
+    anchorDate?: Date;
     interval?: number;
     runDates?: Date[];
 }
@@ -30,6 +31,7 @@ const taskSchema = new Schema<ITask>(
             },
         },
         endDate: { type: Date },
+        anchorDate: { type: Date },
         interval: {
             type: Number,
             required: function () {
