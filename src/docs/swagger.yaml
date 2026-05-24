@@ -774,7 +774,7 @@ components:
                           items:
                               type: string
                               format: date-time
-                          description: Specific dates to run for PROGRAMMED tasks
+                          description: Specific dates to run for PROGRAMMED tasks. Past dates are ignored; at least one future date must remain after filtering.
 
         TaskExecution:
             type: object
@@ -870,7 +870,7 @@ components:
                     items:
                         type: string
                         format: date-time
-                    description: Specific dates to run at (for PROGRAMMED tasks only)
+                    description: Specific dates to run at. Past dates are ignored; at least one future date must remain after filtering (for PROGRAMMED tasks only)
 
         # Kept for backward compatibility with previous references
         Error:

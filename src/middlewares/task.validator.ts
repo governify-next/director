@@ -3,6 +3,18 @@ import { type Request, type Response, type NextFunction } from 'express';
 import { ValidationError } from '../utils/customErrors.js';
 import { TaskType } from '../models/task.model.js';
 
+function filterFutureRunDates(runDates: unknown) {
+    if (!Array.isArray(runDates)) {
+        return runDates;
+    }
+
+    const now = Date.now();
+    return runDates.filter((runDate) => {
+        const runDateTime = new Date(runDate).getTime();
+        return Number.isFinite(runDateTime) && runDateTime > now;
+    });
+}
+
 export const validateTask = [
     body('script')
         .exists({ checkNull: true })
@@ -81,9 +93,12 @@ export const validateTask = [
     body('runDates.*')
         .if(body('type').equals(TaskType.PROGRAMMED))
         .isISO8601({ strict: true })
-        .withMessage('Each runDate must be a valid ISO8601 date string')
-        .isAfter()
-        .withMessage('Each runDate must be in the future'),
+        .withMessage('Each runDate must be a valid ISO8601 date string'),
+    body('runDates')
+        .if(body('type').equals(TaskType.PROGRAMMED))
+        .customSanitizer(filterFutureRunDates)
+        .custom((runDates) => Array.isArray(runDates) && runDates.length > 0)
+        .withMessage('runDates must contain at least one future date'),
     body('runDates')
         .if(body('type').not().equals(TaskType.PROGRAMMED))
         .not()
