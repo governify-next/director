@@ -21,12 +21,9 @@ export async function cleanupRecurringSchedulers() {
         if (!taskId || !(await getTaskById(taskId.toString()))) {
             try {
                 await taskQueue.removeJobScheduler(scheduler.key);
-                logger.info(`Removed orphan recurring scheduler ${scheduler.key}.`);
+                logger.info(`Removed orphan recurring scheduler ${scheduler.key}`);
             } catch (error) {
-                logger.error(
-                    `Failed to remove orphan recurring scheduler ${scheduler.key}.`,
-                    error,
-                );
+                logger.error(`Failed to remove orphan recurring scheduler ${scheduler.key}`, error);
             }
         }
     }
@@ -44,9 +41,9 @@ export async function cleanupTaskJobs() {
         ) {
             try {
                 await job.remove();
-                logger.info(`Removed orphan queue job ${job.id}.`);
+                logger.info(`Removed orphan queue job ${job.id}`);
             } catch (error) {
-                logger.error(`Failed to remove orphan queue job ${job.id}.`, error);
+                logger.error(`Failed to remove orphan queue job ${job.id}`, error);
             }
         }
     }
@@ -59,7 +56,7 @@ export async function runCleanup() {
 
 export async function startQueueCleanup() {
     if (bootEnv.QUEUE_CLEANUP_INTERVAL <= 0) {
-        logger.info('Queue cleanup is disabled.');
+        logger.info('Queue cleanup is disabled');
         return;
     }
 
@@ -68,5 +65,5 @@ export async function startQueueCleanup() {
     const timer = setInterval(runCleanup, bootEnv.QUEUE_CLEANUP_INTERVAL);
     timer.unref();
 
-    logger.info(`Started queue cleanup every ${bootEnv.QUEUE_CLEANUP_INTERVAL}ms.`);
+    logger.info(`Started queue cleanup every ${bootEnv.QUEUE_CLEANUP_INTERVAL}ms`);
 }

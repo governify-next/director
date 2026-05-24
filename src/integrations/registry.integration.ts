@@ -1,5 +1,6 @@
 import { bootEnv } from '../config/bootConfig.js';
 import { serviceHeaders } from '../utils/serviceAuth.js';
+import { ExternalServiceError } from '../utils/customErrors.js';
 
 const REGISTRY_SERVICE_URL = bootEnv.REGISTRY_SERVICE_URL;
 
@@ -18,6 +19,6 @@ export const generateStatesForAuditableAgreementVersion = async (
         },
     );
     const result = await response.json();
-    if (!result.success) throw new Error(`Failed to generate states: ${result.error}`);
+    if (!result.success) throw new ExternalServiceError(`Failed to generate states`);
     return result.data;
 };

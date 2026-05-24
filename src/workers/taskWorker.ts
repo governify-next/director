@@ -1,4 +1,4 @@
-import { Worker } from 'bullmq';
+import { Job, Worker } from 'bullmq';
 import Task from '../models/task.model.js';
 import TaskExecution, { TaskExecutionStatus } from '../models/taskExecution.model.js';
 import { getScriptByName } from '../services/script.service.js';
@@ -7,11 +7,33 @@ import { QUEUE_NAME } from './taskQueue.js';
 import { TaskExecutionContext, TaskExecutionJobData } from '../types/script.js';
 import { getLogger } from '../utils/logger.js';
 
+function resolveScheduledAt(job: Job<TaskExecutionJobData>): Date {
+    if (typeof job.data?.scheduledAt === 'number') {
+        return new Date(job.data.scheduledAt);
+    }
+
+    if (typeof job.id === 'string' && job.id.startsWith('repeat:')) {
+        const lastSegment = job.id.split(':').pop();
+        const scheduledAt = lastSegment ? Number(lastSegment) : Number.NaN;
+
+        if (Number.isFinite(scheduledAt)) {
+            return new Date(scheduledAt);
+        }
+    }
+
+    if (typeof job.timestamp === 'number') {
+        return new Date(job.timestamp);
+    }
+
+    return new Date();
+}
+
 export async function startTaskWorker() {
     const taskWorker = new Worker<TaskExecutionJobData>(
         QUEUE_NAME,
         async (job) => {
             const scriptLogs: string[] = [];
+            const scheduledAt = resolveScheduledAt(job);
 
             const execution = await TaskExecution.create({
                 taskId: job.data.taskId,
@@ -38,6 +60,7 @@ export async function startTaskWorker() {
 
                 const scriptContext: TaskExecutionContext = {
                     taskId: task._id,
+                    scheduledAt: scheduledAt,
                     logger: scriptLogger,
                 };
 

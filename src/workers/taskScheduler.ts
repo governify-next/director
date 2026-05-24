@@ -22,7 +22,7 @@ export async function scheduleRecurringTask(task: ITask) {
         },
     );
 
-    logger.debug(`Upserted recurring schedule for task ${task._id}.`);
+    logger.debug(`Upserted recurring schedule for task ${task._id}`);
 }
 
 export async function removeRecurringTask(taskId: string) {
@@ -31,24 +31,26 @@ export async function removeRecurringTask(taskId: string) {
     try {
         await taskQueue.removeJobScheduler(jobSchedulerId);
     } catch (error) {
-        logger.debug(`Recurring scheduler for task ${taskId} was not removed.`, error);
+        logger.debug(`Recurring scheduler for task ${taskId} was not removed`, error);
     }
 }
 
 export async function scheduleImmediateTask(task: ITask) {
     const jobId = `immediate-task-${task._id}`;
+    const scheduledAt = new Date().getTime();
 
     await taskQueue.add(
         'execute-immediate-task',
         {
             taskId: task._id,
+            scheduledAt: scheduledAt,
         },
         {
             jobId: jobId,
         },
     );
 
-    logger.debug(`Scheduled immediate task ${task._id}.`);
+    logger.debug(`Scheduled immediate task ${task._id}`);
 }
 
 export async function scheduleProgrammedTask(task: ITask) {
@@ -58,11 +60,13 @@ export async function scheduleProgrammedTask(task: ITask) {
         }
 
         const jobId = `programmed-task-${task._id}-${runDate.getTime()}`;
+        const scheduledAt = runDate.getTime();
 
         await taskQueue.add(
             'execute-programmed-task',
             {
                 taskId: task._id,
+                scheduledAt: scheduledAt,
             },
             {
                 jobId: jobId,
@@ -70,9 +74,7 @@ export async function scheduleProgrammedTask(task: ITask) {
             },
         );
 
-        logger.debug(
-            `Scheduled programmed task ${task._id} for run date ${runDate.toISOString()}.`,
-        );
+        logger.debug(`Scheduled programmed task ${task._id} for run date ${runDate.toISOString()}`);
     }
 }
 
@@ -84,7 +86,7 @@ export async function removeProgrammedTask(task: ITask) {
             await taskQueue.remove(jobId);
         } catch (error) {
             logger.debug(
-                `Scheduled job for programmed task ${task._id} and run date ${runDate.toISOString()} was not removed.`,
+                `Scheduled job for programmed task ${task._id} and run date ${runDate.toISOString()} was not removed`,
                 error,
             );
         }
@@ -119,18 +121,18 @@ export async function loadRecurringTasks() {
         $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: now } }],
     });
 
-    logger.info(`Found ${activeRecurringTasks.length} active recurring tasks.`);
+    logger.info(`Found ${activeRecurringTasks.length} active recurring tasks`);
 
     for (const task of activeRecurringTasks) {
         try {
-            logger.debug(`Scheduling recurring task ${task._id} from database.`);
+            logger.debug(`Scheduling recurring task ${task._id} from database`);
             await scheduleRecurringTask(task);
         } catch (error) {
             logger.error(`Failed scheduling recurring task ${task._id} during load.`, error);
         }
     }
 
-    logger.info(`Finished loading recurring tasks from database.`);
+    logger.info(`Finished loading recurring tasks from database`);
 }
 
 export async function loadProgrammedTasks() {
@@ -142,16 +144,16 @@ export async function loadProgrammedTasks() {
         runDates: { $elemMatch: { $gte: now } },
     });
 
-    logger.info(`Found ${activeProgrammedTasks.length} active programmed tasks.`);
+    logger.info(`Found ${activeProgrammedTasks.length} active programmed tasks`);
 
     for (const task of activeProgrammedTasks) {
         try {
-            logger.debug(`Scheduling programmed task ${task._id} from database.`);
+            logger.debug(`Scheduling programmed task ${task._id} from database`);
             await scheduleProgrammedTask(task);
         } catch (error) {
-            logger.error(`Failed scheduling programmed task ${task._id} during load.`, error);
+            logger.error(`Failed scheduling programmed task ${task._id} during load`, error);
         }
     }
 
-    logger.info(`Finished loading programmed tasks from database.`);
+    logger.info(`Finished loading programmed tasks from database`);
 }

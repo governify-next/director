@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { ScriptHandler, ScriptModule, TaskExecutionContext } from '../types/script.js';
 
-import * as registryIntegration from '../integrations/registry.integrations.js';
-import * as reporterIntegration from '../integrations/reporter.integrations.js';
+import * as registryIntegration from '../integrations/registry.integration.js';
+import * as reporterIntegration from '../integrations/reporter.integration.js';
 
 const name = 'generateStates';
 const description =
@@ -16,7 +16,7 @@ const inputSchema = z.object({
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     const { orgName, elementName, agColName } = inputSchema.parse(args);
-    const { taskId, logger } = context;
+    const { taskId, logger, scheduledAt } = context;
 
     logger.info(
         `Generating states for task ${taskId} with orgName: ${orgName}, elementName: ${elementName}, agColName: ${agColName}...`,
@@ -26,7 +26,7 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
         orgName,
         elementName,
         agColName,
-        new Date(),
+        scheduledAt,
     );
 
     const reporterResult =
@@ -37,7 +37,7 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
         );
 
     logger.info(
-        `Finished states generation for task ${taskId}. Inserted ${reporterResult.totalPoints} points.`,
+        `Finished states generation for task ${taskId}. Inserted ${reporterResult.totalPoints} points`,
     );
 
     return reporterResult;

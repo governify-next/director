@@ -1,5 +1,6 @@
 import { bootEnv } from '../config/bootConfig.js';
 import { serviceHeaders } from '../utils/serviceAuth.js';
+import { ExternalServiceError } from '../utils/customErrors.js';
 
 const REPORTER_SERVICE_URL = bootEnv.REPORTER_SERVICE_URL;
 
@@ -16,6 +17,6 @@ export const syncStatesWithInfluxForAuditableAgreementVersion = async (
         },
     );
     const result = await response.json();
-    if (!result.success) throw new Error(`Failed to sync states with Influx: ${result.error}`);
+    if (!result.success) throw new ExternalServiceError(`Failed to sync states with Influx`);
     return result.data;
 };
