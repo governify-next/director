@@ -11,6 +11,10 @@ const description =
 const inputSchema = z.object({
     fetcherId: z.string(),
     fetcherConfig: z.record(z.string(), z.any()),
+    orgId: z.string().optional(),
+    elementId: z.string().optional(),
+    agColId: z.string().optional(),
+    agreementVersion: z.number().optional(),
 });
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
