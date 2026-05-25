@@ -21,6 +21,24 @@ export const getTasks = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
+export const searchTasks = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tasks = await taskService.searchTasks(req.body ?? {});
+        return sendSuccess(res, { data: tasks });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const deleteTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.deleteTasksByFilters(req.body);
+        return sendSuccess(res, { data: result, message: 'Tasks deleted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const task = await taskService.getTaskById(req.params.id);

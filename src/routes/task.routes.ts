@@ -1,11 +1,21 @@
 import { Router } from 'express';
 import * as taskController from '../controllers/task.controller.js';
-import { validateTask } from '../middlewares/task.validator.js';
+import {
+    validateTask,
+    validateTaskDeleteFilters,
+    validateTaskFilters,
+} from '../middlewares/task.validator.js';
 import { validateMongoId } from '../middlewares/mongoId.validator.js';
 
 export const taskRoutes = Router();
 
 taskRoutes.get('/tasks/', taskController.getTasks);
+taskRoutes.post('/tasks/search', validateTaskFilters, taskController.searchTasks);
+taskRoutes.post(
+    '/tasks/search/delete',
+    validateTaskDeleteFilters,
+    taskController.deleteTasksByFilters,
+);
 taskRoutes.get('/tasks/:id', validateMongoId, taskController.getTaskById);
 taskRoutes.post('/tasks/', validateTask, taskController.createTask);
 taskRoutes.delete('/tasks/', taskController.deleteAllTasks);

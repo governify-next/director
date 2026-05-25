@@ -14,7 +14,7 @@ const inputSchema = z.object({
     orgId: z.string().optional(),
     elementId: z.string().optional(),
     agColId: z.string().optional(),
-    agreementVersion: z.number().optional(),
+    versionNumber: z.number().optional(),
 });
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {

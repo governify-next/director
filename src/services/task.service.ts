@@ -1,4 +1,5 @@
 import * as taskRepository from '../repositories/task.repository.js';
+import type { TaskFilters } from '../repositories/task.repository.js';
 import * as scriptRepository from '../repositories/script.repository.js';
 import * as taskScheduler from '../workers/taskScheduler.js';
 import { ITask } from '../models/task.model.js';
@@ -23,6 +24,19 @@ export const createTask = async (data: Partial<ITask>) => {
 
 export const getTasks = async () => {
     return await taskRepository.getTasks();
+};
+
+export const searchTasks = async (filters: TaskFilters) => {
+    return await taskRepository.getTasksByFilters(filters);
+};
+
+export const deleteTasksByFilters = async (filters: TaskFilters) => {
+    const tasks = await taskRepository.getTasksByFilters(filters);
+    const taskIds = tasks.map((task) => task._id.toString());
+    const deletedTasks = await taskRepository.deleteTasks(taskIds);
+
+    await Promise.all(tasks.map((task) => taskScheduler.removeTask(task)));
+    return deletedTasks;
 };
 
 export const getTaskById = async (id: string) => {

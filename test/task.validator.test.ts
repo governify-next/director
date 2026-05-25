@@ -1,18 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { type Request, type Response, type NextFunction } from 'express';
-import { validateTask } from '../src/middlewares/task.validator.js';
+import {
+    validateTask,
+    validateTaskDeleteFilters,
+    validateTaskFilters,
+} from '../src/middlewares/task.validator.js';
 import { ValidationError } from '../src/utils/customErrors.js';
 
-async function runValidateTask(body: Record<string, unknown>) {
+async function runValidator(
+    validator: typeof validateTask | typeof validateTaskFilters | typeof validateTaskDeleteFilters,
+    body: Record<string, unknown>,
+) {
     const req = { body } as Request;
     const res = {} as Response;
     let error: unknown;
 
-    for (const middleware of validateTask.slice(0, -1)) {
+    for (const middleware of validator.slice(0, -1)) {
         await (middleware as { run: (req: Request) => Promise<unknown> }).run(req);
     }
 
-    const finalMiddleware = validateTask[validateTask.length - 1] as (
+    const finalMiddleware = validator[validator.length - 1] as (
         req: Request,
         res: Response,
         next: NextFunction,
@@ -23,6 +30,18 @@ async function runValidateTask(body: Record<string, unknown>) {
     });
 
     return { body: req.body, error };
+}
+
+async function runValidateTask(body: Record<string, unknown>) {
+    return runValidator(validateTask, body);
+}
+
+async function runValidateTaskFilters(body: Record<string, unknown>) {
+    return runValidator(validateTaskFilters, body);
+}
+
+async function runValidateTaskDeleteFilters(body: Record<string, unknown>) {
+    return runValidator(validateTaskDeleteFilters, body);
 }
 
 describe('validateTask', () => {
@@ -64,5 +83,73 @@ describe('validateTask', () => {
                 }),
             ]),
         );
+    });
+});
+
+describe('validateTaskFilters', () => {
+    it('rejects Mongo operators in inputArgs filters', async () => {
+        const result = await runValidateTaskFilters({
+            inputArgs: {
+                fetcherId: { $ne: null },
+            },
+        });
+
+        expect(result.error).toBeInstanceOf(ValidationError);
+        expect((result.error as ValidationError).details).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    msg: 'inputArgs.fetcherId contains unsafe key "$ne"',
+                    path: 'inputArgs',
+                }),
+            ]),
+        );
+    });
+
+    it('rejects dotted inputArgs filter keys', async () => {
+        const result = await runValidateTaskFilters({
+            inputArgs: {
+                'fetcherConfig.workspaceId': 'workspace-1',
+            },
+        });
+
+        expect(result.error).toBeInstanceOf(ValidationError);
+        expect((result.error as ValidationError).details).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    msg: 'inputArgs contains unsafe key "fetcherConfig.workspaceId"',
+                    path: 'inputArgs',
+                }),
+            ]),
+        );
+    });
+});
+
+describe('validateTaskDeleteFilters', () => {
+    it('requires at least one filter for delete-by-filter requests', async () => {
+        const result = await runValidateTaskDeleteFilters({});
+
+        expect(result.error).toBeInstanceOf(ValidationError);
+        expect((result.error as ValidationError).details).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    msg: 'at least one filter is required to delete tasks',
+                    path: '',
+                }),
+            ]),
+        );
+    });
+
+    it('accepts safe delete-by-filter requests', async () => {
+        const result = await runValidateTaskDeleteFilters({
+            script: 'fetchFetcher',
+            inputArgs: {
+                fetcherConfig: {
+                    workspaceId: 'workspace-1',
+                },
+            },
+            enabled: true,
+        });
+
+        expect(result.error).toBeUndefined();
     });
 });

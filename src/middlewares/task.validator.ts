@@ -15,6 +15,37 @@ function filterFutureRunDates(runDates: unknown) {
     });
 }
 
+function validateSafeObjectKeys(value: unknown, path = 'inputArgs'): boolean {
+    if (Array.isArray(value)) {
+        return value.every((item, index) => validateSafeObjectKeys(item, `${path}.${index}`));
+    }
+
+    if (value === null || typeof value !== 'object') {
+        return true;
+    }
+
+    for (const [key, nestedValue] of Object.entries(value)) {
+        if (key.startsWith('$') || key.includes('.')) {
+            throw new Error(`${path} contains unsafe key "${key}"`);
+        }
+
+        validateSafeObjectKeys(nestedValue, `${path}.${key}`);
+    }
+
+    return true;
+}
+
+function hasAtLeastOneTaskFilter(bodyValue: unknown): boolean {
+    if (bodyValue === null || typeof bodyValue !== 'object' || Array.isArray(bodyValue)) {
+        return false;
+    }
+
+    const filters = bodyValue as Record<string, unknown>;
+    return ['script', 'inputArgs', 'type', 'enabled'].some(
+        (filter) => filters[filter] !== undefined,
+    );
+}
+
 export const validateTask = [
     body('script')
         .exists({ checkNull: true })
@@ -28,7 +59,9 @@ export const validateTask = [
     body('inputArgs')
         .optional()
         .isObject({ strict: true })
-        .withMessage('inputArgs must be an object'),
+        .withMessage('inputArgs must be an object')
+        .bail()
+        .custom((inputArgs) => validateSafeObjectKeys(inputArgs)),
     body('type')
         .exists({ checkNull: true })
         .withMessage('type is required')
@@ -104,6 +137,63 @@ export const validateTask = [
         .not()
         .exists({ checkNull: true })
         .withMessage('runDates is only allowed for programmed tasks'),
+    (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return next(new ValidationError('Validation failed', errors.array()));
+        }
+        next();
+    },
+];
+
+export const validateTaskFilters = [
+    body()
+        .custom(
+            (value) =>
+                value === undefined ||
+                (value !== null && typeof value === 'object' && !Array.isArray(value)),
+        )
+        .withMessage('filter body must be an object'),
+    body('script').optional().isString().withMessage('script must be a string'),
+    body('inputArgs')
+        .optional()
+        .isObject({ strict: true })
+        .withMessage('inputArgs must be an object')
+        .bail()
+        .custom((inputArgs) => validateSafeObjectKeys(inputArgs)),
+    body('type')
+        .optional()
+        .isIn(Object.values(TaskType))
+        .withMessage(`type must be one of ${Object.values(TaskType).join(', ')}`),
+    body('enabled').optional().isBoolean().withMessage('enabled must be a boolean').toBoolean(),
+    (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return next(new ValidationError('Validation failed', errors.array()));
+        }
+        next();
+    },
+];
+
+export const validateTaskDeleteFilters = [
+    body()
+        .custom((value) => value !== null && typeof value === 'object' && !Array.isArray(value))
+        .withMessage('filter body must be an object')
+        .bail()
+        .custom(hasAtLeastOneTaskFilter)
+        .withMessage('at least one filter is required to delete tasks'),
+    body('script').optional().isString().withMessage('script must be a string'),
+    body('inputArgs')
+        .optional()
+        .isObject({ strict: true })
+        .withMessage('inputArgs must be an object')
+        .bail()
+        .custom((inputArgs) => validateSafeObjectKeys(inputArgs)),
+    body('type')
+        .optional()
+        .isIn(Object.values(TaskType))
+        .withMessage(`type must be one of ${Object.values(TaskType).join(', ')}`),
+    body('enabled').optional().isBoolean().withMessage('enabled must be a boolean').toBoolean(),
     (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

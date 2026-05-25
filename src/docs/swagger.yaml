@@ -198,6 +198,99 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalError'
 
+    /api/v1/tasks/search:
+        post:
+            tags:
+                - Tasks
+            summary: Search tasks by filters
+            operationId: searchTasks
+            security:
+                - BearerAuth: []
+            description: Retrieves tasks matching any provided filters. All filters are optional; inputArgs matches the provided nested fields.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskFilterInput'
+                        examples:
+                            fetchFetcherEnabled:
+                                summary: Enabled fetchFetcher programmed tasks for one workspace
+                                value:
+                                    script: fetchFetcher
+                                    inputArgs:
+                                        fetcherId: FT_GQL_ZENHUB_ISSUES
+                                        fetcherConfig:
+                                            workspaceId: 6985a1698916df000fc33df6
+                                    type: PROGRAMMED
+                                    enabled: true
+            responses:
+                '200':
+                    description: Tasks retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: array
+                                              items:
+                                                  $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/search/delete:
+        post:
+            tags:
+                - Tasks
+            summary: Delete tasks by filters
+            operationId: deleteTasksByFilters
+            security:
+                - BearerAuth: []
+            description: Deletes tasks matching the provided filters and cascades deletion to related task executions. At least one filter is required; use DELETE /api/v1/tasks to delete all tasks.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskDeleteFilterInput'
+                        examples:
+                            deleteDisabledFetchFetcher:
+                                summary: Delete disabled fetchFetcher tasks for one workspace
+                                value:
+                                    script: fetchFetcher
+                                    inputArgs:
+                                        fetcherConfig:
+                                            workspaceId: 6985a1698916df000fc33df6
+                                    enabled: false
+            responses:
+                '200':
+                    description: Tasks deleted successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Tasks deleted
+                                          data:
+                                              $ref: '#/components/schemas/DeleteAllTasksResult'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
     /api/v1/tasks/{id}:
         parameters:
             - $ref: '#/components/parameters/taskId'
@@ -871,6 +964,49 @@ components:
                         type: string
                         format: date-time
                     description: Specific dates to run at. Past dates are ignored; at least one future date must remain after filtering (for PROGRAMMED tasks only)
+
+        TaskFilterInput:
+            type: object
+            description: Optional filters to search tasks. Empty body returns all tasks. inputArgs matches the provided nested fields.
+            properties:
+                script:
+                    type: string
+                    description: Script name to match
+                inputArgs:
+                    type: object
+                    description: Input arguments to match by provided nested fields. Keys starting with $ or containing . are rejected.
+                type:
+                    type: string
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
+                    description: Task type to match
+                enabled:
+                    type: boolean
+                    description: Enabled state to match
+            example:
+                script: fetchFetcher
+                inputArgs:
+                    fetcherId: FT_GQL_ZENHUB_ISSUES
+                    fetcherConfig:
+                        workspaceId: 6985a1698916df000fc33df6
+                type: PROGRAMMED
+                enabled: true
+
+        TaskDeleteFilterInput:
+            allOf:
+                - $ref: '#/components/schemas/TaskFilterInput'
+                - type: object
+                  description: Filters to delete matching tasks. At least one of script, inputArgs, type, or enabled is required.
+                  anyOf:
+                      - required: [script]
+                      - required: [inputArgs]
+                      - required: [type]
+                      - required: [enabled]
+                  example:
+                      script: fetchFetcher
+                      inputArgs:
+                          fetcherConfig:
+                              workspaceId: 6985a1698916df000fc33df6
+                      enabled: false
 
         # Kept for backward compatibility with previous references
         Error:
