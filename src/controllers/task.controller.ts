@@ -32,8 +32,26 @@ export const searchTasks = async (req: Request, res: Response, next: NextFunctio
 
 export const deleteTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const result = await taskService.deleteTasksByFilters(req.body);
+        const result = await taskService.deleteTasksByFilters(req.body ?? {});
         return sendSuccess(res, { data: result, message: 'Tasks deleted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const enableTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.enableTasksByFilters(req.body ?? {});
+        return sendSuccess(res, { data: result, message: 'Tasks enabled' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const disableTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.disableTasksByFilters(req.body ?? {});
+        return sendSuccess(res, { data: result, message: 'Tasks disabled' });
     } catch (err) {
         next(err);
     }

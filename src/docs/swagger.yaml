@@ -253,9 +253,9 @@ paths:
             operationId: deleteTasksByFilters
             security:
                 - BearerAuth: []
-            description: Deletes tasks matching the provided filters and cascades deletion to related task executions. At least one filter is required; use DELETE /api/v1/tasks to delete all tasks.
+            description: Deletes tasks matching the provided optional filters and cascades deletion to related task executions. Empty body deletes all tasks.
             requestBody:
-                required: true
+                required: false
                 content:
                     application/json:
                         schema:
@@ -284,6 +284,80 @@ paths:
                                               example: Tasks deleted
                                           data:
                                               $ref: '#/components/schemas/DeleteAllTasksResult'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/search/enable:
+        post:
+            tags:
+                - Tasks
+            summary: Enable tasks by filters
+            operationId: enableTasksByFilters
+            security:
+                - BearerAuth: []
+            description: Enables tasks matching the provided optional filters and schedules them if needed. Empty body enables all tasks.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskUpdateFilterInput'
+            responses:
+                '200':
+                    description: Tasks enabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Tasks enabled
+                                          data:
+                                              $ref: '#/components/schemas/TaskBulkStateResult'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/search/disable:
+        post:
+            tags:
+                - Tasks
+            summary: Disable tasks by filters
+            operationId: disableTasksByFilters
+            security:
+                - BearerAuth: []
+            description: Disables tasks matching the provided optional filters and unschedules them. Empty body disables all tasks.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskUpdateFilterInput'
+            responses:
+                '200':
+                    description: Tasks disabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Tasks disabled
+                                          data:
+                                              $ref: '#/components/schemas/TaskBulkStateResult'
                 '400':
                     $ref: '#/components/responses/ValidationError'
                 '401':
@@ -923,6 +997,22 @@ components:
                 - deletedTasksCount
                 - deletedExecutionsCount
 
+        TaskBulkStateResult:
+            type: object
+            description: Number of tasks matched by a filter and changed by a bulk enable/disable operation.
+            properties:
+                matchedTasksCount:
+                    type: integer
+                    minimum: 0
+                    example: 4
+                updatedTasksCount:
+                    type: integer
+                    minimum: 0
+                    example: 3
+            required:
+                - matchedTasksCount
+                - updatedTasksCount
+
         TaskInput:
             type: object
             required:
@@ -995,18 +1085,25 @@ components:
             allOf:
                 - $ref: '#/components/schemas/TaskFilterInput'
                 - type: object
-                  description: Filters to delete matching tasks. At least one of script, inputArgs, type, or enabled is required.
-                  anyOf:
-                      - required: [script]
-                      - required: [inputArgs]
-                      - required: [type]
-                      - required: [enabled]
+                  description: Optional filters to delete matching tasks. Empty body deletes all tasks.
                   example:
                       script: fetchFetcher
                       inputArgs:
                           fetcherConfig:
                               workspaceId: 6985a1698916df000fc33df6
                       enabled: false
+
+        TaskUpdateFilterInput:
+            allOf:
+                - $ref: '#/components/schemas/TaskFilterInput'
+                - type: object
+                  description: Optional filters to enable or disable matching tasks. Empty body applies to all tasks.
+                  example:
+                      script: fetchFetcher
+                      inputArgs:
+                          fetcherConfig:
+                              workspaceId: 6985a1698916df000fc33df6
+                      type: PROGRAMMED
 
         # Kept for backward compatibility with previous references
         Error:

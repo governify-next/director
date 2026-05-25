@@ -39,6 +39,52 @@ export const deleteTasksByFilters = async (filters: TaskFilters) => {
     return deletedTasks;
 };
 
+export const enableTasksByFilters = async (filters: TaskFilters) => {
+    const tasks = await taskRepository.getTasksByFilters(filters);
+    let updatedTasksCount = 0;
+
+    for (const task of tasks) {
+        if (!task.enabled) {
+            const enabledTask = await taskRepository.updateTask(task._id.toString(), {
+                enabled: true,
+            });
+            if (!enabledTask) continue;
+            updatedTasksCount++;
+            await taskScheduler.scheduleTask(enabledTask);
+            continue;
+        }
+
+        await taskScheduler.scheduleTask(task);
+    }
+
+    return {
+        matchedTasksCount: tasks.length,
+        updatedTasksCount,
+    };
+};
+
+export const disableTasksByFilters = async (filters: TaskFilters) => {
+    const tasks = await taskRepository.getTasksByFilters(filters);
+    let updatedTasksCount = 0;
+
+    for (const task of tasks) {
+        if (task.enabled) {
+            const disabledTask = await taskRepository.updateTask(task._id.toString(), {
+                enabled: false,
+            });
+            if (!disabledTask) continue;
+            updatedTasksCount++;
+        }
+
+        await taskScheduler.removeTask(task);
+    }
+
+    return {
+        matchedTasksCount: tasks.length,
+        updatedTasksCount,
+    };
+};
+
 export const getTaskById = async (id: string) => {
     return await taskRepository.getTaskById(id);
 };

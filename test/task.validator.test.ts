@@ -4,11 +4,16 @@ import {
     validateTask,
     validateTaskDeleteFilters,
     validateTaskFilters,
+    validateTaskUpdateFilters,
 } from '../src/middlewares/task.validator.js';
 import { ValidationError } from '../src/utils/customErrors.js';
 
 async function runValidator(
-    validator: typeof validateTask | typeof validateTaskFilters | typeof validateTaskDeleteFilters,
+    validator:
+        | typeof validateTask
+        | typeof validateTaskFilters
+        | typeof validateTaskDeleteFilters
+        | typeof validateTaskUpdateFilters,
     body: Record<string, unknown>,
 ) {
     const req = { body } as Request;
@@ -42,6 +47,10 @@ async function runValidateTaskFilters(body: Record<string, unknown>) {
 
 async function runValidateTaskDeleteFilters(body: Record<string, unknown>) {
     return runValidator(validateTaskDeleteFilters, body);
+}
+
+async function runValidateTaskUpdateFilters(body: Record<string, unknown>) {
+    return runValidator(validateTaskUpdateFilters, body);
 }
 
 describe('validateTask', () => {
@@ -125,18 +134,10 @@ describe('validateTaskFilters', () => {
 });
 
 describe('validateTaskDeleteFilters', () => {
-    it('requires at least one filter for delete-by-filter requests', async () => {
+    it('accepts empty delete-by-filter requests', async () => {
         const result = await runValidateTaskDeleteFilters({});
 
-        expect(result.error).toBeInstanceOf(ValidationError);
-        expect((result.error as ValidationError).details).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    msg: 'at least one filter is required to delete tasks',
-                    path: '',
-                }),
-            ]),
-        );
+        expect(result.error).toBeUndefined();
     });
 
     it('accepts safe delete-by-filter requests', async () => {
@@ -149,6 +150,14 @@ describe('validateTaskDeleteFilters', () => {
             },
             enabled: true,
         });
+
+        expect(result.error).toBeUndefined();
+    });
+});
+
+describe('validateTaskUpdateFilters', () => {
+    it('accepts empty enable/disable by filter requests', async () => {
+        const result = await runValidateTaskUpdateFilters({});
 
         expect(result.error).toBeUndefined();
     });

@@ -4,6 +4,7 @@ import {
     validateTask,
     validateTaskDeleteFilters,
     validateTaskFilters,
+    validateTaskUpdateFilters,
 } from '../middlewares/task.validator.js';
 import { validateMongoId } from '../middlewares/mongoId.validator.js';
 
@@ -15,6 +16,16 @@ taskRoutes.post(
     '/tasks/search/delete',
     validateTaskDeleteFilters,
     taskController.deleteTasksByFilters,
+);
+taskRoutes.post(
+    '/tasks/search/enable',
+    validateTaskUpdateFilters,
+    taskController.enableTasksByFilters,
+);
+taskRoutes.post(
+    '/tasks/search/disable',
+    validateTaskUpdateFilters,
+    taskController.disableTasksByFilters,
 );
 taskRoutes.get('/tasks/:id', validateMongoId, taskController.getTaskById);
 taskRoutes.post('/tasks/', validateTask, taskController.createTask);
