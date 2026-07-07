@@ -5,5 +5,5 @@ import { Router } from 'express';
 export const healthRoutes = Router();
 
 healthRoutes.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'Health check passed' });
+    res.status(200).json({ status: 'ok', message: 'Health check passed!' });
 });
