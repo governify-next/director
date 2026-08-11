@@ -1,5 +1,5 @@
 import { bootEnv } from '../config/bootConfig.js';
-import { serviceHeaders } from '../utils/serviceAuth.js';
+import { getServiceHeaders } from '../utils/serviceAuthentication.js';
 import { ExternalServiceError } from '../utils/customErrors.js';
 
 const REGISTRY_SERVICE_URL = bootEnv.REGISTRY_SERVICE_URL;
@@ -14,7 +14,7 @@ export const generateStatesForAuditableAgreementVersion = async (
         `${REGISTRY_SERVICE_URL}/api/v1/organizations/${orgName}/elements/${elementName}/agreementCollections/${agColName}/agreementVersions/auditableVersion/states/generate?isAsync=false`,
         {
             method: 'POST',
-            headers: serviceHeaders,
+            headers: getServiceHeaders(),
             body: JSON.stringify({ date }),
         },
     );
