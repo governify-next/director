@@ -1,6 +1,7 @@
 import { bootEnv } from '../config/bootConfig.js';
 import { getServiceHeaders } from '../utils/serviceAuthentication.js';
 import { ExternalServiceError } from '../utils/customErrors.js';
+import { ITemporalContext } from '../types/temporal.js';
 
 const FETCHER_SERVICE_URL = bootEnv.FETCHER_SERVICE_URL;
 
@@ -17,7 +18,7 @@ export const checkHealth = async (): Promise<boolean> => {
 
 export const generateFetchResult = async (
     fetcherId: string,
-    date: Date,
+    temporalContext: ITemporalContext,
     fetcherConfig: Record<string, unknown>,
     isAsync: boolean,
 ) => {
@@ -26,7 +27,7 @@ export const generateFetchResult = async (
         {
             method: 'POST',
             headers: getServiceHeaders(),
-            body: JSON.stringify({ date, fetcherConfig }),
+            body: JSON.stringify({ temporalContext, fetcherConfig }),
         },
     );
     const result = await response.json();
