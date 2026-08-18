@@ -16,10 +16,18 @@ export const createTask = async (data: Partial<ITask>) => {
         throw new ValidationError('Invalid inputArgs', parseResult.error.issues);
     }
 
-    const task = await taskRepository.createTask(data);
+    const taskCreation = await taskRepository.createTask(data);
 
-    await taskScheduler.scheduleTask(task);
-    return task;
+    if (taskCreation.created) {
+        try {
+            await taskScheduler.scheduleTask(taskCreation.task);
+        } catch (error) {
+            await taskScheduler.removeTask(taskCreation.task);
+            await taskRepository.deleteTask(taskCreation.task._id.toString());
+            throw error;
+        }
+    }
+    return taskCreation;
 };
 
 export const getTasks = async () => {

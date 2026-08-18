@@ -39,10 +39,10 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     );
 
     logger.info(
-        `State successfully generated for signature ${signatureId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
+        `Consolidated state successfully generated for signature ${signatureId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
     );
 
-    return `State successfully generated for signature ${signatureId}`;
+    return `Consolidated state successfully generated for signature ${signatureId}`;
 };
 
 const module: ScriptModule = {

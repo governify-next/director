@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { buildTaskDeduplicationKey } from '../utils/taskIdentity.js';
 
 export enum TaskType {
     IMMEDIATE = 'IMMEDIATE',
@@ -16,6 +17,7 @@ export interface ITask extends Document {
     anchorDate?: Date;
     interval?: number;
     runDates?: Date[];
+    deduplicationKey: string;
 }
 
 const taskSchema = new Schema<ITask>(
@@ -45,11 +47,32 @@ const taskSchema = new Schema<ITask>(
                 return this.type === TaskType.PROGRAMMED;
             },
         },
+        deduplicationKey: { type: String, required: true, select: false },
     },
-    { timestamps: true },
+    {
+        timestamps: true,
+        toJSON: {
+            transform: (_document, returnedObject) => {
+                delete (returnedObject as unknown as Record<string, unknown>).deduplicationKey;
+                return returnedObject;
+            },
+        },
+    },
 );
 
 taskSchema.index({ type: 1, enabled: 1, startDate: 1, endDate: 1 });
+taskSchema.index(
+    { deduplicationKey: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { deduplicationKey: { $type: 'string' } },
+        name: 'unique_task_identity',
+    },
+);
+
+taskSchema.pre('validate', function () {
+    this.deduplicationKey = buildTaskDeduplicationKey(this);
+});
 
 const Task = mongoose.model<ITask>('Task', taskSchema);
 

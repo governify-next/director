@@ -143,10 +143,31 @@ paths:
             operationId: createTask
             security:
                 - BearerAuth: []
-            description: Creates and schedules a task according to its type.
+            description: |
+                Creates and schedules a task according to its type. Creation is idempotent:
+                tasks with the same `script`, canonicalized `inputArgs`, `type`, and effective
+                schedule share one stored task. The `enabled` value is not part of task identity.
+                If an equivalent task already exists, it is returned without being scheduled again.
             requestBody:
                 $ref: '#/components/requestBodies/TaskInputBody'
             responses:
+                '200':
+                    description: An equivalent task already exists and was returned without rescheduling.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task already exists
+                                          httpStatus:
+                                              type: integer
+                                              example: 200
+                                          data:
+                                              $ref: '#/components/schemas/Task'
                 '201':
                     description: Task created successfully.
                     content:
@@ -403,7 +424,9 @@ paths:
             operationId: updateTask
             security:
                 - BearerAuth: []
-            description: Updates an existing task and re-schedules it if needed.
+            description: |
+                Updates an existing task and re-schedules it if needed. Returns `409` when the
+                resulting definition would be equivalent to another stored task.
             requestBody:
                 $ref: '#/components/requestBodies/TaskInputBody'
             responses:
@@ -427,6 +450,8 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '409':
+                    $ref: '#/components/responses/DuplicateTask'
                 '500':
                     $ref: '#/components/responses/InternalError'
         delete:
@@ -653,6 +678,21 @@ components:
                         data: null
                         error:
                             message: Authorization header missing or malformed
+                            details: null
+        DuplicateTask:
+            description: The resulting task definition duplicates another stored task
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                    example:
+                        success: false
+                        message: An equivalent task already exists
+                        httpStatus: 409
+                        appCode: DUPLICATE_KEY
+                        data: null
+                        error:
+                            message: An equivalent task already exists
                             details: null
         InternalError:
             description: Internal server error

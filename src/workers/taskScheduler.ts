@@ -70,6 +70,16 @@ export async function scheduleImmediateTask(task: ITask) {
     logger.debug(`Scheduled immediate task ${task._id}`);
 }
 
+export async function removeImmediateTask(taskId: string) {
+    const jobId = `immediate-task-${taskId}`;
+
+    try {
+        await taskQueue.remove(jobId);
+    } catch (error) {
+        logger.debug(`Immediate job for task ${taskId} was not removed`, error);
+    }
+}
+
 export async function scheduleProgrammedTask(task: ITask) {
     for (const runDate of task.runDates!) {
         if (runDate.getTime() < Date.now()) {
@@ -123,6 +133,8 @@ export async function scheduleTask(task: ITask) {
 export async function removeTask(task: ITask) {
     if (task.type === TaskType.RECURRING) {
         await removeRecurringTask(task._id.toString());
+    } else if (task.type === TaskType.IMMEDIATE) {
+        await removeImmediateTask(task._id.toString());
     } else if (task.type === TaskType.PROGRAMMED) {
         await removeProgrammedTask(task);
     }

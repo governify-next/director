@@ -5,8 +5,12 @@ import { NotFoundError } from '../utils/customErrors.js';
 
 export const createTask = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const task = await taskService.createTask(req.body);
-        return sendSuccess(res, { data: task, httpStatus: 201, message: 'Task created' });
+        const { task, created } = await taskService.createTask(req.body);
+        return sendSuccess(res, {
+            data: task,
+            httpStatus: created ? 201 : 200,
+            message: created ? 'Task created' : 'Task already exists',
+        });
     } catch (err) {
         next(err);
     }
