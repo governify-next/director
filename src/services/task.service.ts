@@ -18,6 +18,28 @@ export const createTask = async (data: Partial<ITask>) => {
 
     const taskCreation = await taskRepository.createTask(data);
 
+    if (
+        !taskCreation.created &&
+        data.enabled !== undefined &&
+        taskCreation.task.enabled !== data.enabled
+    ) {
+        const updatedTask = await taskRepository.updateTask(taskCreation.task._id.toString(), {
+            enabled: data.enabled,
+        });
+
+        if (!updatedTask) {
+            throw new Error('Task not found while updating enabled state');
+        }
+
+        if (updatedTask.enabled) {
+            await taskScheduler.scheduleTask(updatedTask);
+        } else {
+            await taskScheduler.removeTask(updatedTask);
+        }
+
+        return { task: updatedTask, created: false };
+    }
+
     if (taskCreation.created) {
         try {
             await taskScheduler.scheduleTask(taskCreation.task);

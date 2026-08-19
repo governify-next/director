@@ -147,12 +147,15 @@ paths:
                 Creates and schedules a task according to its type. Creation is idempotent:
                 tasks with the same `script`, canonicalized `inputArgs`, `type`, and effective
                 schedule share one stored task. The `enabled` value is not part of task identity.
-                If an equivalent task already exists, it is returned without being scheduled again.
+                If an equivalent task already exists and the request includes a different `enabled`
+                value, the stored task is enabled and scheduled or disabled and unscheduled accordingly.
+                When the value is already the requested one, no write or scheduling action is performed.
+                Omitting `enabled` preserves the current state of an existing task.
             requestBody:
                 $ref: '#/components/requestBodies/TaskInputBody'
             responses:
                 '200':
-                    description: An equivalent task already exists and was returned without rescheduling.
+                    description: An equivalent task already exists. Its enabled state is synchronized only when the request supplies a different value.
                     content:
                         application/json:
                             schema:
@@ -1072,7 +1075,8 @@ components:
                     description: Type of task
                 enabled:
                     type: boolean
-                    description: Whether task is enabled (default true)
+                    default: true
+                    description: Desired task state. Defaults to true for new tasks. For an equivalent existing task, a supplied different value updates its state and scheduling; omitting it preserves the stored state.
                 startDate:
                     type: string
                     format: date-time
