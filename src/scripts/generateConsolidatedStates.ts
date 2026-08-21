@@ -6,11 +6,10 @@ import * as registryIntegration from '../integrations/registry.integration.js';
 
 const name = 'generateConsolidatedStates';
 const description =
-    'Generates consolidated states for one signature of an agreement version at the exact scheduled execution date, using CAPTURE and keeping states that already exist.';
+    'Starts asynchronous consolidated-state generation for one signature at the exact scheduled execution date, using CAPTURE and keeping states that already exist.';
 
 const inputSchema = z.object({
     orgName: z.string(),
-    agColName: z.string(),
     orgId: z.string(),
     scopeId: z.string(),
     agColId: z.string(),
@@ -19,30 +18,33 @@ const inputSchema = z.object({
 });
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
-    const { orgName, agColName, orgId, scopeId, agColId, agreementVersion, signatureId } =
+    const { orgName, orgId, scopeId, agColId, agreementVersion, signatureId } =
         inputSchema.parse(args);
     const { logger, scheduledAt } = context;
 
     logger.info(
-        `Generating consolidated state for signature ${signatureId} of agreement ${agColName} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
+        `Starting asynchronous consolidated-state generation for signature ${signatureId} of agreement collection ${agColId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgreementVersion: ${agreementVersion}`,
     );
+
+    const isAsync = true;
 
     await registryIntegration.generateConsolidatedStatesForAgreementVersion(
         orgName,
         scopeId,
-        agColName,
+        agColId,
         agreementVersion,
         scheduledAt,
+        isAsync,
         TemporalMode.CAPTURE,
         ExistingStatePolicy.KEEP,
         signatureId,
     );
 
     logger.info(
-        `Consolidated state successfully generated for signature ${signatureId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
+        `Asynchronous consolidated-state generation accepted for signature ${signatureId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
     );
 
-    return `Consolidated state successfully generated for signature ${signatureId}`;
+    return `Asynchronous consolidated-state generation accepted for signature ${signatureId}`;
 };
 
 const module: ScriptModule = {

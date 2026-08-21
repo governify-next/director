@@ -16,7 +16,10 @@ export const createTask = async (data: Partial<ITask>) => {
         throw new ValidationError('Invalid inputArgs', parseResult.error.issues);
     }
 
-    const taskCreation = await taskRepository.createTask(data);
+    const taskCreation = await taskRepository.createTask({
+        ...data,
+        inputArgs: parseResult.data,
+    });
 
     if (
         !taskCreation.created &&

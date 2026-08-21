@@ -7,7 +7,7 @@ import * as fetcherIntegration from '../integrations/fetcher.integration.js';
 
 const name = 'fetchFetcher';
 const description =
-    'Captures and persists data for a fetcher at the exact scheduled execution time. Requires fetcherId and fetcherConfig; optional agreement metadata supports task filtering and lifecycle management.';
+    'Starts asynchronous data capture for a fetcher at the exact scheduled execution time. Requires fetcherId and fetcherConfig; optional agreement metadata supports task filtering and lifecycle management.';
 
 const inputSchema = z.object({
     fetcherId: z.string(),
@@ -21,27 +21,27 @@ const inputSchema = z.object({
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     const { fetcherId, fetcherConfig, orgId, scopeId, agColId, versionNumber } =
         inputSchema.parse(args);
-    const { taskId, logger, scheduledAt } = context;
+    const { logger, scheduledAt } = context;
 
     if ((await fetcherIntegration.checkHealth()) === false) {
         throw new ExternalServiceError(`Fetcher service is not available`);
     }
     logger.info(
-        `Generating fetch result for fetcherId ${fetcherId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, VersionNumber: ${versionNumber}`,
+        `Starting asynchronous fetch-result generation for fetcherId ${fetcherId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, VersionNumber: ${versionNumber}`,
     );
-    const fetchResult = await fetcherIntegration.generateFetchResult(
+    await fetcherIntegration.generateFetchResult(
         fetcherId,
         {
             effectiveAt: scheduledAt,
             mode: TemporalMode.CAPTURE,
         },
         fetcherConfig,
-        false,
+        true,
     );
     logger.info(
-        `Fetch result successfully generated with fetcherId ${fetcherId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, VersionNumber: ${versionNumber}`,
+        `Asynchronous fetch-result generation accepted for fetcherId ${fetcherId} at ${scheduledAt.toISOString()}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, VersionNumber: ${versionNumber}`,
     );
-    return `Fetch result successfully generated with id ${fetchResult.id}`;
+    return `Asynchronous fetch-result generation accepted for fetcherId ${fetcherId}`;
 };
 
 const module: ScriptModule = {

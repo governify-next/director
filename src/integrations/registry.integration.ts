@@ -8,15 +8,16 @@ const REGISTRY_SERVICE_URL = bootEnv.REGISTRY_SERVICE_URL;
 export const generateConsolidatedStatesForAgreementVersion = async (
     orgName: string,
     scopeId: string,
-    agColName: string,
+    agColId: string,
     agreementVersion: number | 'auditableVersion',
     date: Date,
+    isAsync: boolean,
     temporalMode: TemporalMode,
     existingStatePolicy: ExistingStatePolicy,
     signatureId: string,
 ) => {
     const response = await fetch(
-        `${REGISTRY_SERVICE_URL}/api/v1/organizations/${orgName}/scopes/${scopeId}/agreementCollections/${agColName}/agreementVersions/${agreementVersion}/states/consolidated/generate?isAsync=false`,
+        `${REGISTRY_SERVICE_URL}/api/v1/organizations/${orgName}/scopes/${scopeId}/agreementCollections/${agColId}/agreementVersions/${agreementVersion}/states/consolidated/generate?isAsync=${isAsync}`,
         {
             method: 'POST',
             headers: getServiceHeaders(),
