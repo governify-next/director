@@ -8,14 +8,14 @@ describe('fetchFetcher script', () => {
         vi.unstubAllGlobals();
     });
 
-    it('captures the fetcher at the exact scheduled time using the temporal contract', async () => {
+    it('starts asynchronous capture at the exact scheduled time', async () => {
         const fetchMock = vi
             .fn()
             .mockResolvedValueOnce({ ok: true })
             .mockResolvedValueOnce({
                 json: async () => ({
                     success: true,
-                    data: { status: 'COMPLETED' },
+                    data: { status: 'IN_PROGRESS' },
                 }),
             });
         vi.stubGlobal('fetch', fetchMock);
@@ -23,7 +23,7 @@ describe('fetchFetcher script', () => {
         const scheduledAt = new Date('2026-08-12T10:15:30.000Z');
         const logger = { info: vi.fn() } as unknown as TaskExecutionContext['logger'];
 
-        await fetchFetcher.exec(
+        const result = await fetchFetcher.exec(
             {
                 fetcherId: 'FT_GQL_ZENHUB_ISSUES',
                 fetcherConfig: { workspaceId: 'workspace-id' },
@@ -42,7 +42,7 @@ describe('fetchFetcher script', () => {
         expect(fetchMock).toHaveBeenCalledTimes(2);
         const [url, request] = fetchMock.mock.calls[1];
         expect(url).toBe(
-            'http://localhost:5904/api/v1/fetchers/FT_GQL_ZENHUB_ISSUES/fetchResults/generate?isAsync=false',
+            'http://localhost:5904/api/v1/fetchers/FT_GQL_ZENHUB_ISSUES/fetchResults/generate?isAsync=true',
         );
         expect(request).toMatchObject({ method: 'POST' });
         expect(JSON.parse(request.body)).toEqual({
@@ -52,5 +52,8 @@ describe('fetchFetcher script', () => {
             },
             fetcherConfig: { workspaceId: 'workspace-id' },
         });
+        expect(result).toBe(
+            'Asynchronous fetch-result generation accepted for fetcherId FT_GQL_ZENHUB_ISSUES',
+        );
     });
 });

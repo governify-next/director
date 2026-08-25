@@ -8,7 +8,7 @@ describe('generateConsolidatedStates script', () => {
         vi.unstubAllGlobals();
     });
 
-    it('generates consolidated states at the scheduled time using CAPTURE and KEEP', async () => {
+    it('starts asynchronous consolidated-state generation using CAPTURE and KEEP', async () => {
         const fetchMock = vi.fn().mockResolvedValue({
             json: async () => ({
                 success: true,
@@ -25,7 +25,6 @@ describe('generateConsolidatedStates script', () => {
             {
                 orgName: 'organization',
                 scopeId: 'scope-id',
-                agColName: 'agreement',
                 orgId: 'organization-id',
                 agColId: 'agreement-collection-id',
                 agreementVersion: 2,
@@ -42,7 +41,7 @@ describe('generateConsolidatedStates script', () => {
         expect(fetchMock).toHaveBeenCalledOnce();
         const [url, request] = fetchMock.mock.calls[0];
         expect(url).toBe(
-            'http://localhost:5902/api/v1/organizations/organization/scopes/scope-id/agreementCollections/agreement/agreementVersions/2/states/consolidated/generate?isAsync=false',
+            'http://localhost:5902/api/v1/organizations/organization/scopes/scope-id/agreementCollections/agreement-collection-id/agreementVersions/2/states/consolidated/generate?isAsync=true',
         );
         expect(request).toMatchObject({ method: 'POST' });
         expect(JSON.parse(request.body)).toEqual({
@@ -51,17 +50,17 @@ describe('generateConsolidatedStates script', () => {
             ifExists: 'KEEP',
             signatureIds: [signatureId],
         });
-        expect(result).toBe('1 states successfully generated');
+        expect(result).toBe(
+            `Asynchronous consolidated-state generation accepted for signature ${signatureId}`,
+        );
     });
 
-    it('requires a fixed positive agreementVersion and a valid signatureId', () => {
+    it('accepts a positive agreementVersion or auditableVersion and requires a string signatureId', () => {
         const baseInput = {
             orgName: 'organization',
             scopeId: 'scope-id',
-            agColName: 'agreement',
             orgId: 'organization-id',
             agColId: 'agreement-collection-id',
-            versionNumber: 7,
             signatureId: new Types.ObjectId().toString(),
         };
 
@@ -82,12 +81,12 @@ describe('generateConsolidatedStates script', () => {
                 ...baseInput,
                 agreementVersion: 'auditableVersion',
             }).success,
-        ).toBe(false);
+        ).toBe(true);
         expect(
             generateConsolidatedStates.inputSchema.safeParse({
                 ...baseInput,
                 agreementVersion: 2,
-                signatureId: 'not-an-object-id',
+                signatureId: 123,
             }).success,
         ).toBe(false);
     });
