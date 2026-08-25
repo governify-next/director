@@ -14,6 +14,7 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     return {
         message,
         context: context,
+        scheduledAt: context.scheduledAt.toISOString(),
         timestamp: new Date().toISOString(),
     };
 };

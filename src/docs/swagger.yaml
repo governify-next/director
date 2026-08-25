@@ -143,10 +143,34 @@ paths:
             operationId: createTask
             security:
                 - BearerAuth: []
-            description: Creates and schedules a task according to its type.
+            description: |
+                Creates and schedules a task according to its type. Creation is idempotent:
+                tasks with the same `script`, canonicalized `inputArgs`, `type`, and effective
+                schedule share one stored task. The `enabled` value is not part of task identity.
+                If an equivalent task already exists and the request includes a different `enabled`
+                value, the stored task is enabled and scheduled or disabled and unscheduled accordingly.
+                When the value is already the requested one, no write or scheduling action is performed.
+                Omitting `enabled` preserves the current state of an existing task.
             requestBody:
                 $ref: '#/components/requestBodies/TaskInputBody'
             responses:
+                '200':
+                    description: An equivalent task already exists. Its enabled state is synchronized only when the request supplies a different value.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Task already exists
+                                          httpStatus:
+                                              type: integer
+                                              example: 200
+                                          data:
+                                              $ref: '#/components/schemas/Task'
                 '201':
                     description: Task created successfully.
                     content:
@@ -198,6 +222,173 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalError'
 
+    /api/v1/tasks/search:
+        post:
+            tags:
+                - Tasks
+            summary: Search tasks by filters
+            operationId: searchTasks
+            security:
+                - BearerAuth: []
+            description: Retrieves tasks matching any provided filters. All filters are optional; inputArgs matches the provided nested fields.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskFilterInput'
+                        examples:
+                            fetchFetcherEnabled:
+                                summary: Enabled fetchFetcher programmed tasks for one workspace
+                                value:
+                                    script: fetchFetcher
+                                    inputArgs:
+                                        fetcherId: FT_GQL_ZENHUB_ISSUES
+                                        fetcherConfig:
+                                            workspaceId: 6985a1698916df000fc33df6
+                                    type: PROGRAMMED
+                                    enabled: true
+            responses:
+                '200':
+                    description: Tasks retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: array
+                                              items:
+                                                  $ref: '#/components/schemas/Task'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/search/delete:
+        post:
+            tags:
+                - Tasks
+            summary: Delete tasks by filters
+            operationId: deleteTasksByFilters
+            security:
+                - BearerAuth: []
+            description: Deletes tasks matching the provided optional filters and cascades deletion to related task executions. Empty body deletes all tasks.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskDeleteFilterInput'
+                        examples:
+                            deleteDisabledFetchFetcher:
+                                summary: Delete disabled fetchFetcher tasks for one workspace
+                                value:
+                                    script: fetchFetcher
+                                    inputArgs:
+                                        fetcherConfig:
+                                            workspaceId: 6985a1698916df000fc33df6
+                                    enabled: false
+            responses:
+                '200':
+                    description: Tasks deleted successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Tasks deleted
+                                          data:
+                                              $ref: '#/components/schemas/DeleteAllTasksResult'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/search/enable:
+        post:
+            tags:
+                - Tasks
+            summary: Enable tasks by filters
+            operationId: enableTasksByFilters
+            security:
+                - BearerAuth: []
+            description: Enables tasks matching the provided optional filters and schedules them if needed. Empty body enables all tasks.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskUpdateFilterInput'
+            responses:
+                '200':
+                    description: Tasks enabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Tasks enabled
+                                          data:
+                                              $ref: '#/components/schemas/TaskBulkStateResult'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
+    /api/v1/tasks/search/disable:
+        post:
+            tags:
+                - Tasks
+            summary: Disable tasks by filters
+            operationId: disableTasksByFilters
+            security:
+                - BearerAuth: []
+            description: Disables tasks matching the provided optional filters and unschedules them. Empty body disables all tasks.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TaskUpdateFilterInput'
+            responses:
+                '200':
+                    description: Tasks disabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/SuccessResponse'
+                                    - type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Tasks disabled
+                                          data:
+                                              $ref: '#/components/schemas/TaskBulkStateResult'
+                '400':
+                    $ref: '#/components/responses/ValidationError'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalError'
+
     /api/v1/tasks/{id}:
         parameters:
             - $ref: '#/components/parameters/taskId'
@@ -236,7 +427,9 @@ paths:
             operationId: updateTask
             security:
                 - BearerAuth: []
-            description: Updates an existing task and re-schedules it if needed.
+            description: |
+                Updates an existing task and re-schedules it if needed. Returns `409` when the
+                resulting definition would be equivalent to another stored task.
             requestBody:
                 $ref: '#/components/requestBodies/TaskInputBody'
             responses:
@@ -260,6 +453,8 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '409':
+                    $ref: '#/components/responses/DuplicateTask'
                 '500':
                     $ref: '#/components/responses/InternalError'
         delete:
@@ -487,6 +682,21 @@ components:
                         error:
                             message: Authorization header missing or malformed
                             details: null
+        DuplicateTask:
+            description: The resulting task definition duplicates another stored task
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                    example:
+                        success: false
+                        message: An equivalent task already exists
+                        httpStatus: 409
+                        appCode: DUPLICATE_KEY
+                        data: null
+                        error:
+                            message: An equivalent task already exists
+                            details: null
         InternalError:
             description: Internal server error
             content:
@@ -537,6 +747,7 @@ components:
                       enabled: true
                       startDate: '2026-04-02T10:00:00.000Z'
                       endDate: '2026-04-09T10:00:00.000Z'
+                      anchorDate: '2026-04-02T00:00:00.000Z'
                       interval: 60000
                       createdAt: '2026-04-01T09:01:00.000Z'
                       updatedAt: '2026-04-01T09:01:00.000Z'
@@ -574,6 +785,7 @@ components:
                 enabled: true
                 startDate: '2026-04-02T10:00:00.000Z'
                 endDate: '2026-04-09T10:00:00.000Z'
+                anchorDate: '2026-04-02T00:00:00.000Z'
                 interval: 60000
         TaskInputProgrammedSum:
             summary: PROGRAMMED task using the sum script
@@ -748,7 +960,11 @@ components:
                       endDate:
                           type: string
                           format: date-time
-                          description: When the recurring task ends (optional)
+                          description: Inclusive end of the recurring task. If the next anchored run date is after this value, no further execution is scheduled.
+                      anchorDate:
+                          type: string
+                          format: date-time
+                          description: Origin used to align recurring execution windows. Runs occur at anchorDate + n * interval, constrained by startDate and endDate. If omitted, startDate is used as the anchor.
                       interval:
                           type: number
                           description: Interval in milliseconds for recurring tasks
@@ -768,7 +984,7 @@ components:
                           items:
                               type: string
                               format: date-time
-                          description: Specific dates to run for PROGRAMMED tasks
+                          description: Specific dates to run for PROGRAMMED tasks. Past dates are ignored; at least one future date must remain after filtering.
 
         TaskExecution:
             type: object
@@ -824,6 +1040,22 @@ components:
                 - deletedTasksCount
                 - deletedExecutionsCount
 
+        TaskBulkStateResult:
+            type: object
+            description: Number of tasks matched by a filter and changed by a bulk enable/disable operation.
+            properties:
+                matchedTasksCount:
+                    type: integer
+                    minimum: 0
+                    example: 4
+                updatedTasksCount:
+                    type: integer
+                    minimum: 0
+                    example: 3
+            required:
+                - matchedTasksCount
+                - updatedTasksCount
+
         TaskInput:
             type: object
             required:
@@ -843,7 +1075,8 @@ components:
                     description: Type of task
                 enabled:
                     type: boolean
-                    description: Whether task is enabled (default true)
+                    default: true
+                    description: Desired task state. Defaults to true for new tasks. For an equivalent existing task, a supplied different value updates its state and scheduling; omitting it preserves the stored state.
                 startDate:
                     type: string
                     format: date-time
@@ -851,7 +1084,11 @@ components:
                 endDate:
                     type: string
                     format: date-time
-                    description: When the task ends (optional, for RECURRING tasks only)
+                    description: Inclusive end of the recurring task. If the next anchored run date is after this value, no further execution is scheduled (optional, for RECURRING tasks only)
+                anchorDate:
+                    type: string
+                    format: date-time
+                    description: Origin used to align recurring execution windows. Runs occur at anchorDate + n * interval, constrained by startDate and endDate. If omitted, startDate is used as the anchor (for RECURRING tasks only)
                 interval:
                     type: number
                     description: Interval in milliseconds for recurring tasks (for RECURRING tasks only)
@@ -860,7 +1097,57 @@ components:
                     items:
                         type: string
                         format: date-time
-                    description: Specific dates to run at (for PROGRAMMED tasks only)
+                    description: Specific dates to run at. Past dates are ignored; at least one future date must remain after filtering (for PROGRAMMED tasks only)
+
+        TaskFilterInput:
+            type: object
+            description: Optional filters to search tasks. Empty body returns all tasks. inputArgs matches the provided nested fields.
+            properties:
+                script:
+                    type: string
+                    description: Script name to match
+                inputArgs:
+                    type: object
+                    description: Input arguments to match by provided nested fields. Keys starting with $ or containing . are rejected.
+                type:
+                    type: string
+                    enum: [IMMEDIATE, RECURRING, PROGRAMMED]
+                    description: Task type to match
+                enabled:
+                    type: boolean
+                    description: Enabled state to match
+            example:
+                script: fetchFetcher
+                inputArgs:
+                    fetcherId: FT_GQL_ZENHUB_ISSUES
+                    fetcherConfig:
+                        workspaceId: 6985a1698916df000fc33df6
+                type: PROGRAMMED
+                enabled: true
+
+        TaskDeleteFilterInput:
+            allOf:
+                - $ref: '#/components/schemas/TaskFilterInput'
+                - type: object
+                  description: Optional filters to delete matching tasks. Empty body deletes all tasks.
+                  example:
+                      script: fetchFetcher
+                      inputArgs:
+                          fetcherConfig:
+                              workspaceId: 6985a1698916df000fc33df6
+                      enabled: false
+
+        TaskUpdateFilterInput:
+            allOf:
+                - $ref: '#/components/schemas/TaskFilterInput'
+                - type: object
+                  description: Optional filters to enable or disable matching tasks. Empty body applies to all tasks.
+                  example:
+                      script: fetchFetcher
+                      inputArgs:
+                          fetcherConfig:
+                              workspaceId: 6985a1698916df000fc33df6
+                      type: PROGRAMMED
 
         # Kept for backward compatibility with previous references
         Error:

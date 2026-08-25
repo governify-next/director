@@ -5,8 +5,12 @@ import { NotFoundError } from '../utils/customErrors.js';
 
 export const createTask = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const task = await taskService.createTask(req.body);
-        return sendSuccess(res, { data: task, httpStatus: 201, message: 'Task created' });
+        const { task, created } = await taskService.createTask(req.body);
+        return sendSuccess(res, {
+            data: task,
+            httpStatus: created ? 201 : 200,
+            message: created ? 'Task created' : 'Task already exists',
+        });
     } catch (err) {
         next(err);
     }
@@ -16,6 +20,42 @@ export const getTasks = async (req: Request, res: Response, next: NextFunction) 
     try {
         const tasks = await taskService.getTasks();
         return sendSuccess(res, { data: tasks });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const searchTasks = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tasks = await taskService.searchTasks(req.body ?? {});
+        return sendSuccess(res, { data: tasks });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const deleteTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.deleteTasksByFilters(req.body ?? {});
+        return sendSuccess(res, { data: result, message: 'Tasks deleted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const enableTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.enableTasksByFilters(req.body ?? {});
+        return sendSuccess(res, { data: result, message: 'Tasks enabled' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const disableTasksByFilters = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await taskService.disableTasksByFilters(req.body ?? {});
+        return sendSuccess(res, { data: result, message: 'Tasks disabled' });
     } catch (err) {
         next(err);
     }
