@@ -12,9 +12,9 @@ const inputSchema = z.object({
 
 const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
     const { a, b } = inputSchema.parse(args);
-    const { taskId, logger } = context;
+    const { taskId, logger, scheduledAt } = context;
 
-    logger.info(`Executing sum script for task ${taskId}.`);
+    logger.info(`Executing sum script for task ${taskId} at ${scheduledAt.toISOString()}`);
     return `Hello from the sum script! ${a} + ${b} = ${a + b}`;
 };
 

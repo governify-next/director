@@ -4,9 +4,11 @@ import { z } from 'zod';
 
 export interface TaskExecutionJobData {
     taskId: Types.ObjectId;
+    scheduledAt?: number;
 }
 
-export interface TaskExecutionContext extends TaskExecutionJobData {
+export interface TaskExecutionContext extends Omit<TaskExecutionJobData, 'scheduledAt'> {
+    scheduledAt: Date;
     logger: Logger;
 }
 

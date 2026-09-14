@@ -1,4 +1,5 @@
 import * as taskRepository from '../repositories/task.repository.js';
+import type { TaskFilters } from '../repositories/task.repository.js';
 import * as scriptRepository from '../repositories/script.repository.js';
 import * as taskScheduler from '../workers/taskScheduler.js';
 import { ITask } from '../models/task.model.js';
@@ -15,14 +16,106 @@ export const createTask = async (data: Partial<ITask>) => {
         throw new ValidationError('Invalid inputArgs', parseResult.error.issues);
     }
 
-    const task = await taskRepository.createTask(data);
+    const taskCreation = await taskRepository.createTask({
+        ...data,
+        inputArgs: parseResult.data,
+    });
 
-    await taskScheduler.scheduleTask(task);
-    return task;
+    if (
+        !taskCreation.created &&
+        data.enabled !== undefined &&
+        taskCreation.task.enabled !== data.enabled
+    ) {
+        const updatedTask = await taskRepository.updateTask(taskCreation.task._id.toString(), {
+            enabled: data.enabled,
+        });
+
+        if (!updatedTask) {
+            throw new Error('Task not found while updating enabled state');
+        }
+
+        if (updatedTask.enabled) {
+            await taskScheduler.scheduleTask(updatedTask);
+        } else {
+            await taskScheduler.removeTask(updatedTask);
+        }
+
+        return { task: updatedTask, created: false };
+    }
+
+    if (taskCreation.created) {
+        try {
+            await taskScheduler.scheduleTask(taskCreation.task);
+        } catch (error) {
+            await taskScheduler.removeTask(taskCreation.task);
+            await taskRepository.deleteTask(taskCreation.task._id.toString());
+            throw error;
+        }
+    }
+    return taskCreation;
 };
 
 export const getTasks = async () => {
     return await taskRepository.getTasks();
+};
+
+export const searchTasks = async (filters: TaskFilters) => {
+    return await taskRepository.getTasksByFilters(filters);
+};
+
+export const deleteTasksByFilters = async (filters: TaskFilters) => {
+    const tasks = await taskRepository.getTasksByFilters(filters);
+    const taskIds = tasks.map((task) => task._id.toString());
+    const deletedTasks = await taskRepository.deleteTasks(taskIds);
+
+    await Promise.all(tasks.map((task) => taskScheduler.removeTask(task)));
+    return deletedTasks;
+};
+
+export const enableTasksByFilters = async (filters: TaskFilters) => {
+    const tasks = await taskRepository.getTasksByFilters(filters);
+    let updatedTasksCount = 0;
+
+    for (const task of tasks) {
+        if (!task.enabled) {
+            const enabledTask = await taskRepository.updateTask(task._id.toString(), {
+                enabled: true,
+            });
+            if (!enabledTask) continue;
+            updatedTasksCount++;
+            await taskScheduler.scheduleTask(enabledTask);
+            continue;
+        }
+
+        await taskScheduler.scheduleTask(task);
+    }
+
+    return {
+        matchedTasksCount: tasks.length,
+        updatedTasksCount,
+    };
+};
+
+export const disableTasksByFilters = async (filters: TaskFilters) => {
+    const tasks = await taskRepository.getTasksByFilters(filters);
+    let updatedTasksCount = 0;
+
+    for (const task of tasks) {
+        if (task.enabled) {
+            const disabledTask = await taskRepository.updateTask(task._id.toString(), {
+                enabled: false,
+            });
+            if (!disabledTask) continue;
+            updatedTasksCount++;
+        }
+
+        await taskScheduler.removeTask(task);
+    }
+
+    return {
+        matchedTasksCount: tasks.length,
+        updatedTasksCount,
+    };
 };
 
 export const getTaskById = async (id: string) => {
@@ -70,7 +163,7 @@ export const deleteAllTasks = async () => {
     const taskIds = tasks.map((task) => task._id.toString());
     const deletedTasks = await taskRepository.deleteTasks(taskIds);
 
-    await tasks.map((task) => taskScheduler.removeTask(task));
+    await Promise.all(tasks.map((task) => taskScheduler.removeTask(task)));
     return deletedTasks;
 };
 
