@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.1.0](https://github.com/governify-next/director/compare/v1.0.1...v1.1.0) (2026-09-14)
+
+### Features
+
+- add anchorDate support for recurring tasks and implement scheduling logic ([91172a8](https://github.com/governify-next/director/commit/91172a8d785de3637647a511dead386d766cede1))
+- add enable and disable tasks by filters endpoints with optional request body ([cbc77f3](https://github.com/governify-next/director/commit/cbc77f3300add82dbadb17b5cc66ad152e9a87a7))
+- enhance asynchronous operations in fetcher and registry scripts ([ef95051](https://github.com/governify-next/director/commit/ef95051192b3521ae5971b202f8bd5bb9d6df1fd))
+- enhance authentication and service integration ([daae33c](https://github.com/governify-next/director/commit/daae33cbf84e7a84acfbfd514d151a47dcbb10b8))
+- enhance existing task creation to synchronize enabled state and scheduling ([4c31004](https://github.com/governify-next/director/commit/4c31004c533ed9513e1db68c83c31e0467fc6957))
+- extend input schema to include optional fields ([a66fbd0](https://github.com/governify-next/director/commit/a66fbd0006ef831b74db4009eb1631fef5d676ce))
+- fetch script ([b33180b](https://github.com/governify-next/director/commit/b33180bfa73939c8bb642e1d251dc9d69ad92e03))
+- filter past run dates and ensure at least one future date for PROGRAMMED tasks ([2b796ad](https://github.com/governify-next/director/commit/2b796ad9086c6ef6570c291e4cc333487a26cd8d))
+- implement idempotent task creation with deduplication ([25688f9](https://github.com/governify-next/director/commit/25688f98736dc6cbc433f93cf781e516af697eae))
+- implement task creation controller and service deduplication tests ([12684e3](https://github.com/governify-next/director/commit/12684e3ac62bed1ca05f621a2965a39e9467590f))
+- implement task search and delete by filters endpoints with validation ([271d543](https://github.com/governify-next/director/commit/271d543600651338a39011443cebf42c80d573f1))
+- refactor fetcher and registry integrations, add consolidated states generation ([96cd2c4](https://github.com/governify-next/director/commit/96cd2c474d281846144419d9934b34e31cc48c7d))
+
+### Bug Fixes
+
+- optimize task removal by using Promise.all for concurrent execution ([b171995](https://github.com/governify-next/director/commit/b1719955a532b687223d1a5047ba077ff4462c10))
+- update environment variables and configuration for director service ([530221e](https://github.com/governify-next/director/commit/530221ef992ae5f196f5881db44d03595b2d897e))
+
+### Miscellaneous Chores
+
+- prepare v1.1.0 release ([d21d72c](https://github.com/governify-next/director/commit/d21d72cdefb0a3abd76beb1567f330eca585d2c8))
+- release 1.1.0 ([3d259c8](https://github.com/governify-next/director/commit/3d259c8ce3e189da55db0ab67bf51d7f69a6ca9c))
+
 ## [1.0.1](https://github.com/governify-next/director/compare/v1.0.0...v1.0.1) (2026-05-12)
 
 ### Bug Fixes
