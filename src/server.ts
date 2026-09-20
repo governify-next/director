@@ -12,18 +12,19 @@ const logger = getLogger().setTag('server.ts');
 const PORT = bootEnv.PORT;
 
 connectMongo()
-    .then(() => {
+    .then(async () => {
+        await loadRecurringTasks();
+        await loadProgrammedTasks();
+        await startQueueCleanup();
+        await startTaskWorker();
+
         app.listen(PORT, () => {
             fetchServiceToken();
             logger.log(`Server running on http://localhost:${PORT}`);
             logger.log(`Docs available at http://localhost:${PORT}/api-docs`);
         });
-
-        loadRecurringTasks();
-        loadProgrammedTasks();
-        startTaskWorker();
-        startQueueCleanup();
     })
     .catch((err) => {
-        logger.error('Failed to connect to MongoDB', err);
+        logger.error('Failed to initialize Director', err);
+        process.exit(1);
     });
