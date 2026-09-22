@@ -4,6 +4,13 @@ import { ExternalServiceError } from '../utils/customErrors.js';
 
 const REPORTER_SERVICE_URL = bootEnv.REPORTER_SERVICE_URL.replace(/\/+$/, '');
 
+type StateSyncResult = {
+    statePoints: number;
+    metricPoints: number;
+    totalPoints: number;
+    batches: number;
+};
+
 export const syncAgreementVersionStates = async (
     orgName: string,
     scopeId: string,
@@ -24,7 +31,7 @@ export const syncAgreementVersionStates = async (
         throw new ExternalServiceError('Reporter service is unavailable', error);
     }
 
-    let result: { success?: boolean; data?: unknown; message?: string } | null;
+    let result: { success?: boolean; data?: StateSyncResult; message?: string } | null;
     try {
         result = await response.json();
     } catch {

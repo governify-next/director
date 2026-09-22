@@ -38,7 +38,7 @@ const exec: ScriptHandler = async (args, context: TaskExecutionContext) => {
         updatedTo,
     );
     logger.info(
-        `States synchronized successfully. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
+        `States synchronized successfully. States: ${result.statePoints}, Metrics: ${result.metricPoints}, TotalPoints: ${result.totalPoints}, Batches: ${result.batches}. OrgId: ${orgId}, ScopeId: ${scopeId}, AgColId: ${agColId}, AgreementVersion: ${agreementVersion}`,
     );
     return result;
 };
