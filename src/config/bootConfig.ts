@@ -23,7 +23,6 @@ export const bootEnv = {
     REDIS_URI: process.env.REDIS_URI || 'redis://localhost:6379',
 
     // JWT configuration
-    SERVICE_AUTHENTICATION_ENABLED: process.env.SERVICE_AUTHENTICATION_ENABLED !== 'false',
     CLIENT_ID: process.env.CLIENT_ID || 'director',
     CLIENT_SECRET: process.env.CLIENT_SECRET || 'director_client_secret',
     JWT_SECRET: process.env.JWT_SECRET || 'governify_next_secret_key',

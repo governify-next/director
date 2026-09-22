@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as scriptController from '../controllers/script.controller.js';
-import { checkServiceAuthentication } from '../integrations/authenticator.validator.js';
+import { checkServiceAuthentication } from '../middlewares/authenticator.validator.js';
 
 export const scriptRoutes = Router();
 
