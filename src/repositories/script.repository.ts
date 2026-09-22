@@ -3,6 +3,7 @@ import exampleEcho from '../scripts/example.echo.js';
 import sum from '../scripts/sum.js';
 import generateConsolidatedStates from '../scripts/generateConsolidatedStates.js';
 import fetchFetcher from '../scripts/fetchFetcher.js';
+import syncAgreementVersionStates from '../scripts/syncAgreementVersionStates.js';
 
 // list of all available scripts in the system - add new scripts here
 // script.name -> ScriptModule
@@ -11,6 +12,7 @@ const scriptRegistry: Record<string, ScriptModule> = {
     [sum.name]: sum,
     [generateConsolidatedStates.name]: generateConsolidatedStates,
     [fetchFetcher.name]: fetchFetcher,
+    [syncAgreementVersionStates.name]: syncAgreementVersionStates,
 };
 
 export const getScripts = () => {
