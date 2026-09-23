@@ -9,7 +9,8 @@ const startup = vi.hoisted(() => ({
     listen: vi.fn(),
 }));
 
-vi.mock('../src/app.js', () => ({ default: { listen: startup.listen } }));
+vi.mock('../src/app.js', () => ({ default: { use: vi.fn(), listen: startup.listen } }));
+vi.mock('@oas-tools/oas-telemetry', () => ({ oasTelemetry: vi.fn(() => vi.fn()) }));
 vi.mock('../src/db/mongo.js', () => ({ connectMongo: startup.connect }));
 vi.mock('../src/workers/taskScheduler.js', () => ({
     loadRecurringTasks: startup.recurring,
