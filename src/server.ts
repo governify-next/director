@@ -1,3 +1,4 @@
+import { oasTelemetry } from '@oas-tools/oas-telemetry';
 import app from './app.js';
 import { getLogger } from './utils/logger.js';
 import { bootEnv } from './config/bootConfig.js';
@@ -7,6 +8,8 @@ import { fetchServiceToken } from './utils/serviceAuthentication.js';
 import { loadProgrammedTasks, loadRecurringTasks } from './workers/taskScheduler.js';
 import { startTaskWorker } from './workers/taskWorker.js';
 import { startQueueCleanup } from './workers/taskQueue.js';
+
+app.use(oasTelemetry());
 
 const logger = getLogger().setTag('server.ts');
 const PORT = bootEnv.PORT;
