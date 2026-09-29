@@ -9,6 +9,39 @@ afterEach(() => {
 });
 
 describe('task service deduplication', () => {
+    it('deduplicates evolutive tasks independently from consolidated tasks', async () => {
+        const schedule = vi.spyOn(taskScheduler, 'scheduleTask').mockResolvedValue();
+        const data = {
+            inputArgs: {
+                orgName: 'org',
+                orgId: 'org-id',
+                scopeId: 'scope-id',
+                agColId: 'collection-id',
+                agreementVersion: 1,
+                signatureId: 'signature-id',
+            },
+            type: TaskType.RECURRING,
+            enabled: true,
+            startDate: new Date('2026-09-20T00:00:00Z'),
+            endDate: new Date('2027-09-20T00:00:00Z'),
+            anchorDate: new Date('2026-09-20T01:00:00Z'),
+            interval: 3_600_000,
+        };
+        const first = await taskService.createTask({ ...data, script: 'generateEvolutiveStates' });
+        const repeated = await taskService.createTask({
+            ...data,
+            script: 'generateEvolutiveStates',
+        });
+        const consolidated = await taskService.createTask({
+            ...data,
+            script: 'generateConsolidatedStates',
+        });
+        expect(first.created).toBe(true);
+        expect(repeated.created).toBe(false);
+        expect(repeated.task._id).toEqual(first.task._id);
+        expect(consolidated.created).toBe(true);
+        expect(schedule).toHaveBeenCalledTimes(2);
+    });
     it('schedules only the first creation and returns the existing task afterwards', async () => {
         const scheduleTaskSpy = vi.spyOn(taskScheduler, 'scheduleTask').mockResolvedValue();
         const taskInput = {
@@ -119,32 +152,35 @@ describe('task service deduplication', () => {
         expect(removeTaskSpy).not.toHaveBeenCalled();
     });
 
-    it('stores only input arguments declared by the script schema', async () => {
-        vi.spyOn(taskScheduler, 'scheduleTask').mockResolvedValue();
+    it.each(['generateConsolidatedStates', 'generateEvolutiveStates'])(
+        'stores only input arguments declared by %s',
+        async (script) => {
+            vi.spyOn(taskScheduler, 'scheduleTask').mockResolvedValue();
 
-        const taskCreation = await taskService.createTask({
-            script: 'generateConsolidatedStates',
-            inputArgs: {
+            const taskCreation = await taskService.createTask({
+                script,
+                inputArgs: {
+                    orgName: 'organization',
+                    scopeId: 'scope-id',
+                    agColName: 'legacy-agreement-name',
+                    orgId: 'organization-id',
+                    agColId: 'agreement-collection-id',
+                    agreementVersion: 1,
+                    signatureId: 'signature-id',
+                },
+                type: TaskType.IMMEDIATE,
+                enabled: true,
+            });
+
+            expect(taskCreation.task.inputArgs).toEqual({
                 orgName: 'organization',
                 scopeId: 'scope-id',
-                agColName: 'legacy-agreement-name',
                 orgId: 'organization-id',
                 agColId: 'agreement-collection-id',
                 agreementVersion: 1,
                 signatureId: 'signature-id',
-            },
-            type: TaskType.IMMEDIATE,
-            enabled: true,
-        });
-
-        expect(taskCreation.task.inputArgs).toEqual({
-            orgName: 'organization',
-            scopeId: 'scope-id',
-            orgId: 'organization-id',
-            agColId: 'agreement-collection-id',
-            agreementVersion: 1,
-            signatureId: 'signature-id',
-        });
-        expect(taskCreation.task.inputArgs).not.toHaveProperty('agColName');
-    });
+            });
+            expect(taskCreation.task.inputArgs).not.toHaveProperty('agColName');
+        },
+    );
 });

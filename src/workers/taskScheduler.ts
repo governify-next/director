@@ -141,23 +141,32 @@ export async function removeTask(task: ITask) {
 }
 
 export async function loadRecurringTasks() {
-    const now = new Date();
-
     const activeRecurringTasks = await Task.find({
         type: TaskType.RECURRING,
         enabled: true,
-        startDate: { $lte: now },
-        $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: now } }],
     });
 
-    logger.info(`Found ${activeRecurringTasks.length} active recurring tasks`);
+    logger.info(`Found ${activeRecurringTasks.length} enabled recurring tasks`);
 
     for (const task of activeRecurringTasks) {
         try {
             logger.debug(`Scheduling recurring task ${task._id} from database`);
+            const schedulerId = `recurring-task-${task._id}`;
+            const scheduler = await taskQueue.getJobScheduler(schedulerId);
+            const pendingJob = scheduler
+                ? await taskQueue.getJob(`repeat:${schedulerId}:${scheduler.next}`)
+                : undefined;
+            await taskQueue.removeJobScheduler(schedulerId);
+            if (pendingJob) {
+                const state = await pendingJob.getState();
+                if (['waiting', 'paused', 'prioritized', 'delayed'].includes(state)) {
+                    await pendingJob.remove();
+                }
+            }
             await scheduleRecurringTask(task);
         } catch (error) {
             logger.error(`Failed scheduling recurring task ${task._id} during load.`, error);
+            throw error;
         }
     }
 
