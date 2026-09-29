@@ -1,3 +1,4 @@
+import generateEvolutiveStates from '../scripts/generateEvolutiveStates.js';
 import { ScriptModule } from '../types/script.js';
 import exampleEcho from '../scripts/example.echo.js';
 import sum from '../scripts/sum.js';
@@ -11,6 +12,7 @@ const scriptRegistry: Record<string, ScriptModule> = {
     [exampleEcho.name]: exampleEcho,
     [sum.name]: sum,
     [generateConsolidatedStates.name]: generateConsolidatedStates,
+    [generateEvolutiveStates.name]: generateEvolutiveStates,
     [fetchFetcher.name]: fetchFetcher,
     [syncAgreementVersionStates.name]: syncAgreementVersionStates,
 };

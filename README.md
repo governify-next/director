@@ -71,6 +71,19 @@ Example `inputArgs`:
 Uses `REGISTRY_SERVICE_URL` and service authentication. Returns an acceptance message;
 the task does not wait for State calculations to finish. A failed request fails the execution.
 
+## `generateEvolutiveStates`
+
+Uses the same input arguments as `generateConsolidatedStates`, calling Registry's
+`/states/evolutive/generate` endpoint at the exact `scheduledAt` instant with
+`CAPTURE`, `KEEP` and `isAsync=true`. Registry generates only non-consolidated ticks
+from the signature's `evolutiveWindow`; null windows and consolidation instants
+return an empty successful result. The script waits for acceptance, not calculation.
+
+Registry creates recurring tasks through `POST .../tasks/states/evolutive`, with
+the evolutive period as interval and its anchor plus one period as the first tick.
+Agreement validity and early termination bound the schedule. The distinct script
+name keeps these tasks separate from consolidated tasks for deduplication and deletion.
+
 ## `fetchFetcher`
 
 Checks Fetcher's health and requests asynchronous data capture for one fetcher.
