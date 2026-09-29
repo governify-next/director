@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0](https://github.com/governify-next/director/compare/v1.1.1...v1.2.0) (2026-09-29)
+
+
+### Features
+
+* add @oas-tools/oas-telemetry for enhanced telemetry support ([818c7a4](https://github.com/governify-next/director/commit/818c7a4d0a3e4ccfcf0473a31d2c2837b5064293))
+* add generateEvolutiveStates script ([4004e97](https://github.com/governify-next/director/commit/4004e97d4e72e71c5033303483b366133461ac54))
+* add service authentication validator ([00810ad](https://github.com/governify-next/director/commit/00810addf237e20396bfdbc321901fde4ddd2a65))
+* enhance syncAgreementVersionStates with detailed logging and type safety ([935926c](https://github.com/governify-next/director/commit/935926cef82a4bf4e3dd30ff0c5c9298d99df991))
+* implement syncAgreementVersionStates script ([60ae8da](https://github.com/governify-next/director/commit/60ae8da55a736386a3560d9e53948fcf0f44859c))
+* new version ([03842b1](https://github.com/governify-next/director/commit/03842b12b25d39f1382a00d8493141b5a2354eef))
+* protect all routes behind svc auth ([818207b](https://github.com/governify-next/director/commit/818207b6c26efdec753d769453767fb3b1ff7b80))
+* refactor service authentication handling ([dc3e93c](https://github.com/governify-next/director/commit/dc3e93ce64c529f70d9fd32ec3ee3181b98cca15))
+* update app.js mock to include 'use' method for improved testing ([313f840](https://github.com/governify-next/director/commit/313f840c9799a30e71df11ec29edb2e2e9f9f395))
+
+
+### Bug Fixes
+
+* refactor server initialization and enhance task loading with improved error handling ([c9b564e](https://github.com/governify-next/director/commit/c9b564ecee4b1e6a8347690736196204560d2fa8))
+
 ## [1.1.1](https://github.com/governify-next/director/compare/v1.1.0...v1.1.1) (2026-09-19)
 
 
