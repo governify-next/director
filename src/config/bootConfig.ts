@@ -32,12 +32,4 @@ export const bootEnv = {
     // BullMQ configuration
     WORKER_CONCURRENCY: Number(process.env.WORKER_CONCURRENCY || '1'),
     QUEUE_CLEANUP_INTERVAL: Number(process.env.QUEUE_CLEANUP_INTERVAL || '0'),
-
-    // Fetch result polling configuration
-    FETCH_RESULT_POLLING_MAX_ATTEMPTS: Number(
-        process.env.FETCH_RESULT_POLLING_MAX_ATTEMPTS || '10',
-    ),
-    FETCH_RESULT_POLLING_INTERVAL_MS: Number(
-        process.env.FETCH_RESULT_POLLING_INTERVAL_MS || '5000',
-    ),
 };
