@@ -21,8 +21,8 @@ connectMongo()
         await startQueueCleanup();
         await startTaskWorker();
 
+        await fetchServiceToken();
         app.listen(PORT, () => {
-            fetchServiceToken();
             logger.log(`Server running on http://localhost:${PORT}`);
             logger.log(`Docs available at http://localhost:${PORT}/api-docs`);
         });
