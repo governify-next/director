@@ -25,7 +25,7 @@ describe('fetchFetcher script', () => {
 
         const result = await fetchFetcher.exec(
             {
-                fetcherId: 'FT_GQL_ZENHUB_ISSUES',
+                fetcherId: 'FT_SNAP_GQL_ZENHUB_ISSUES',
                 fetcherConfig: { workspaceId: 'workspace-id' },
                 orgId: 'organization-id',
                 scopeId: 'scope-id',
@@ -42,7 +42,7 @@ describe('fetchFetcher script', () => {
         expect(fetchMock).toHaveBeenCalledTimes(2);
         const [url, request] = fetchMock.mock.calls[1];
         expect(url).toBe(
-            'http://localhost:5904/api/v1/fetchers/FT_GQL_ZENHUB_ISSUES/fetchResults/generate?isAsync=true',
+            'http://localhost:5904/api/v1/fetchers/FT_SNAP_GQL_ZENHUB_ISSUES/fetchResults/generate?isAsync=true',
         );
         expect(request).toMatchObject({ method: 'POST' });
         expect(JSON.parse(request.body)).toEqual({
@@ -53,7 +53,7 @@ describe('fetchFetcher script', () => {
             fetcherConfig: { workspaceId: 'workspace-id' },
         });
         expect(result).toBe(
-            'Asynchronous fetch-result generation accepted for fetcherId FT_GQL_ZENHUB_ISSUES',
+            'Asynchronous fetch-result generation accepted for fetcherId FT_SNAP_GQL_ZENHUB_ISSUES',
         );
     });
 });

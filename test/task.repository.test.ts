@@ -9,7 +9,7 @@ describe('task repository filters', () => {
             {
                 script: 'fetchFetcher',
                 inputArgs: {
-                    fetcherId: 'FT_GQL_ZENHUB_ISSUES',
+                    fetcherId: 'FT_SNAP_GQL_ZENHUB_ISSUES',
                     fetcherConfig: {
                         workspaceId: 'workspace-1',
                     },
@@ -21,7 +21,7 @@ describe('task repository filters', () => {
             {
                 script: 'fetchFetcher',
                 inputArgs: {
-                    fetcherId: 'FT_GQL_ZENHUB_ISSUES',
+                    fetcherId: 'FT_SNAP_GQL_ZENHUB_ISSUES',
                     fetcherConfig: {
                         workspaceId: 'workspace-2',
                     },

@@ -103,7 +103,7 @@ Example `inputArgs`:
 
 ```json
 {
-    "fetcherId": "FT_GQL_ZENHUB_ISSUES",
+    "fetcherId": "FT_SNAP_GQL_ZENHUB_ISSUES",
     "fetcherConfig": {
         "workspaceId": "workspace-id"
     },

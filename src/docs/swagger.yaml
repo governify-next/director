@@ -247,7 +247,7 @@ paths:
                                 value:
                                     script: fetchFetcher
                                     inputArgs:
-                                        fetcherId: FT_GQL_ZENHUB_ISSUES
+                                        fetcherId: FT_SNAP_GQL_ZENHUB_ISSUES
                                         fetcherConfig:
                                             workspaceId: 6985a1698916df000fc33df6
                                     type: PROGRAMMED
@@ -1125,7 +1125,7 @@ components:
             example:
                 script: fetchFetcher
                 inputArgs:
-                    fetcherId: FT_GQL_ZENHUB_ISSUES
+                    fetcherId: FT_SNAP_GQL_ZENHUB_ISSUES
                     fetcherConfig:
                         workspaceId: 6985a1698916df000fc33df6
                 type: PROGRAMMED
